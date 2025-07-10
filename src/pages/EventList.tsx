@@ -10,110 +10,38 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import EventCard, { EventData, EventType, EventStatus } from '@/components/EventCard'
-import { Search, Filter, Plus } from 'lucide-react'
+import { Search, Filter, Plus, Loader2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useEvents } from '@/hooks/useEvents'
 
 const EventList = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState<EventType | 'all'>('all')
   const [filterStatus, setFilterStatus] = useState<EventStatus | 'all'>('all')
+  
+  const { events, loading } = useEvents()
 
-  // 샘플 데이터 - 추후 Supabase 연동 시 실제 데이터로 교체
-  const events: EventData[] = [
-    {
-      id: '1',
-      title: '신혼가구 타겟 라이브 쇼핑',
-      type: '라이브커머스',
-      status: '진행중',
-      startDate: '2024-01-15',
-      endDate: '2024-01-20',
-      partner: '네이버 쇼핑라이브',
-      targetContracts: 50,
-      actualContracts: 32,
-      targetEstimates: 120,
-      actualEstimates: 95,
-      targetSqm: 1500,
-      actualSqm: 960,
-      description: '신혼부부를 대상으로 한 맞춤형 인테리어 라이브 쇼핑 이벤트'
-    },
-    {
-      id: '2',
-      title: '서울 베이비&키즈 페어 2024',
-      type: '베이비페어',
-      status: '완료',
-      startDate: '2024-01-08',
-      endDate: '2024-01-14',
-      location: '킨텍스 제2전시장',
-      partner: '베이비페어 조직위',
-      targetContracts: 80,
-      actualContracts: 95,
-      targetEstimates: 200,
-      actualEstimates: 215,
-      targetSqm: 2400,
-      actualSqm: 2850,
-      description: '영유아 가구를 위한 안전하고 실용적인 인테리어 솔루션 전시'
-    },
-    {
-      id: '3',
-      title: '분당 신도시 입주박람회',
-      type: '입주박람회',
-      status: '계획중',
-      startDate: '2024-02-01',
-      endDate: '2024-02-03',
-      location: '분당 시티몰',
-      partner: '분당신도시개발',
-      targetContracts: 35,
-      targetEstimates: 85,
-      targetSqm: 1200,
-      description: '분당 신도시 입주 예정자를 대상으로 한 인테리어 박람회'
-    },
-    {
-      id: '4',
-      title: '홈데코 인플루언서 협업 공구',
-      type: '인플루언서공구',
-      status: '계획중',
-      startDate: '2024-01-25',
-      endDate: '2024-01-30',
-      partner: '인테리어_지니',
-      targetContracts: 25,
-      targetEstimates: 60,
-      targetSqm: 800,
-      description: '인기 인테리어 인플루언서와 함께하는 특가 공구 이벤트'
-    },
-    {
-      id: '5',
-      title: '부산 베이비페어 가을시즌',
-      type: '베이비페어',
-      status: '완료',
-      startDate: '2023-12-15',
-      endDate: '2023-12-17',
-      location: '벡스코 제1전시장',
-      partner: '부산베이비페어',
-      targetContracts: 40,
-      actualContracts: 38,
-      targetEstimates: 95,
-      actualEstimates: 92,
-      targetSqm: 1200,
-      actualSqm: 1140,
-      description: '부산 지역 영유아 가정을 위한 인테리어 상담 및 시공 서비스'
-    },
-    {
-      id: '6',
-      title: '새해 맞이 리모델링 라이브',
-      type: '라이브커머스',
-      status: '취소',
-      startDate: '2024-01-02',
-      endDate: '2024-01-05',
-      partner: '카카오 쇼핑라이브',
-      targetContracts: 30,
-      targetEstimates: 75,
-      targetSqm: 900,
-      description: '새해를 맞아 집 전체 리모델링을 고려하는 고객 대상 이벤트'
-    }
-  ]
+  // 이벤트 데이터를 EventData 형태로 변환
+  const convertedEvents: EventData[] = events.map(event => ({
+    id: event.id,
+    title: event.title,
+    type: event.type as EventType,
+    status: event.status as EventStatus,
+    startDate: event.start_date,
+    endDate: event.end_date,
+    partner: event.partner || '',
+    targetContracts: event.target_contracts || 0,
+    actualContracts: event.actual_contracts || 0,
+    targetEstimates: event.target_estimates || 0,
+    actualEstimates: event.actual_estimates || 0,
+    targetSqm: event.target_sqm || 0,
+    actualSqm: event.actual_sqm || 0,
+    totalCost: Number(event.total_cost) || 0,
+    costPerSqm: event.actual_sqm ? Math.round((Number(event.total_cost) || 0) / event.actual_sqm) : 0
+  }))
 
   // 필터링된 이벤트 목록
-  const filteredEvents = events.filter(event => {
+  const filteredEvents = convertedEvents.filter(event => {
     const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          event.partner.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesType = filterType === 'all' || event.type === filterType
@@ -123,11 +51,11 @@ const EventList = () => {
   })
 
   const getStatusCount = (status: EventStatus) => {
-    return events.filter(event => event.status === status).length
+    return convertedEvents.filter(event => event.status === status).length
   }
 
   const getTypeCount = (type: EventType) => {
-    return events.filter(event => event.type === type).length
+    return convertedEvents.filter(event => event.type === type).length
   }
 
   return (
@@ -223,7 +151,12 @@ const EventList = () => {
       </div>
 
       {/* Event Grid */}
-      {filteredEvents.length > 0 ? (
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin mr-2" />
+          <span>이벤트 목록을 불러오는 중...</span>
+        </div>
+      ) : filteredEvents.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredEvents.map((event) => (
             <EventCard key={event.id} event={event} />
