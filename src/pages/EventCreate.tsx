@@ -35,6 +35,7 @@ const EventCreate = () => {
     targetContracts: '',
     targetEstimates: '',
     targetSqm: '',
+    targetCostPerSqm: '',
     totalCost: '',
     status: '계획중' as EventStatus,
     description: '',
@@ -121,6 +122,7 @@ const EventCreate = () => {
             target_contracts: parseInt(formData.targetContracts) || 0,
             target_estimates: parseInt(formData.targetEstimates) || 0,
             target_sqm: parseInt(formData.targetSqm) || 0,
+            target_cost_per_sqm: parseInt(formData.targetCostPerSqm) || 0,
             total_cost: parseInt(formData.totalCost) || 0
           }
         ])
@@ -343,7 +345,7 @@ const EventCreate = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="targetContracts">목표 계약건수 *</Label>
                 <Input
@@ -369,7 +371,9 @@ const EventCreate = () => {
                   required
                 />
               </div>
-              
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="targetSqm">목표 계약장수 *</Label>
                 <Input
@@ -378,6 +382,19 @@ const EventCreate = () => {
                   value={formData.targetSqm}
                   onChange={(e) => handleInputChange('targetSqm', e.target.value)}
                   placeholder="0"
+                  min="0"
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="targetCostPerSqm">목표 장당비용 *</Label>
+                <Input
+                  id="targetCostPerSqm"
+                  type="number"
+                  value={formData.targetCostPerSqm}
+                  onChange={(e) => handleInputChange('targetCostPerSqm', e.target.value)}
+                  placeholder="원"
                   min="0"
                   required
                 />

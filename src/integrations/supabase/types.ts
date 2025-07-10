@@ -69,6 +69,7 @@ export type Database = {
           start_date: string
           status: string
           target_contracts: number | null
+          target_cost_per_sqm: number | null
           target_estimates: number | null
           target_sqm: number | null
           title: string
@@ -94,6 +95,7 @@ export type Database = {
           start_date: string
           status?: string
           target_contracts?: number | null
+          target_cost_per_sqm?: number | null
           target_estimates?: number | null
           target_sqm?: number | null
           title: string
@@ -119,6 +121,7 @@ export type Database = {
           start_date?: string
           status?: string
           target_contracts?: number | null
+          target_cost_per_sqm?: number | null
           target_estimates?: number | null
           target_sqm?: number | null
           title?: string

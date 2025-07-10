@@ -16,6 +16,7 @@ export interface Event {
   actual_estimates: number
   target_sqm: number
   actual_sqm: number
+  target_cost_per_sqm: number
   total_cost: number
   efficiency: number
   created_at: string

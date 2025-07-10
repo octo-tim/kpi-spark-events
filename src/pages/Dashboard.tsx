@@ -442,7 +442,7 @@ const Dashboard = () => {
           <KPICard
             title="장당비용"
             value={Math.round(displayData.kpi.monthlyRevenue / displayData.kpi.totalSqm)}
-            target={10000}
+            target={events.length > 0 ? events[0].target_cost_per_sqm || 10000 : 10000}
             unit="원"
             trend="down"
             trendValue={-5}
