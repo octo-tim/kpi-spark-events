@@ -171,7 +171,7 @@ const EventCreate = () => {
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold text-foreground">새 이벤트 등록</h1>
+          <h1 className="text-3xl font-bold text-foreground">새 이벤트 기획</h1>
           <p className="text-muted-foreground mt-2">
             제휴채널 이벤트의 기본 정보와 목표를 설정하세요
           </p>
@@ -631,7 +631,7 @@ const EventCreate = () => {
               <Link to="/events">취소</Link>
             </Button>
             <Button type="submit">
-              이벤트 등록
+              이벤트 기획
             </Button>
           </div>
         </div>

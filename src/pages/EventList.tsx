@@ -101,7 +101,7 @@ const EventList = () => {
         <Button asChild>
           <Link to="/events/create">
             <Plus className="w-4 h-4 mr-2" />
-            새 이벤트 등록
+            새 이벤트 기획
           </Link>
         </Button>
       </div>
@@ -209,7 +209,7 @@ const EventList = () => {
             }
           </div>
           <Button asChild className="mt-4">
-            <Link to="/events/create">첫 번째 이벤트 등록하기</Link>
+            <Link to="/events/create">첫 번째 이벤트 기획하기</Link>
           </Button>
         </div>
       )}

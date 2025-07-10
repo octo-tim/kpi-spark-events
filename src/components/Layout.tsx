@@ -28,7 +28,7 @@ const Layout = ({ children }: LayoutProps) => {
   const navigation = [
     { name: '대시보드', href: '/', icon: Home },
     { name: '이벤트 목록', href: '/events', icon: Calendar },
-    { name: '이벤트 등록', href: '/events/create', icon: Plus },
+    { name: '이벤트 기획', href: '/events/create', icon: Plus },
     { name: '통계 분석', href: '/analytics', icon: BarChart3 },
     { name: '보고서', href: '/reports', icon: FileText },
   ]
