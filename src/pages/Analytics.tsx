@@ -159,7 +159,20 @@ ${filteredStats.message}
     }
   }
 
-  // 실제 데이터 기반 통계 계산
+  // 다음달 데이터 가져오기 함수
+  const getNextMonthData = async (currentYear: string, currentMonth: string) => {
+    try {
+      const year = parseInt(currentYear)
+      const month = parseInt(currentMonth)
+      const nextMonth = month === 12 ? 1 : month + 1
+      const nextYear = month === 12 ? year + 1 : year
+      
+      return await fetchEventsByMonth(nextYear.toString(), nextMonth.toString().padStart(2, '0'))
+    } catch (error) {
+      console.error('다음달 데이터 조회 오류:', error)
+      return []
+    }
+  }
   const getChannelStats = async (currentEvents: Event[], currentYear: string, currentMonth: string) => {
     console.log('getChannelStats 호출됨:', { 
       currentEventsLength: currentEvents.length, 
@@ -193,6 +206,17 @@ ${filteredStats.message}
       prevChannelMap[event.type].push(event)
     })
     
+    // 다음달 데이터 가져오기
+    const nextMonthEvents = await getNextMonthData(currentYear, currentMonth)
+    const nextChannelMap: { [key: string]: Event[] } = {}
+    
+    nextMonthEvents.forEach(event => {
+      if (!nextChannelMap[event.type]) {
+        nextChannelMap[event.type] = []
+      }
+      nextChannelMap[event.type].push(event)
+    })
+    
     return Object.entries(channelMap).map(([channel, channelEvents]) => {
       const currentContracts = channelEvents.reduce((sum, e) => sum + e.actual_contracts, 0)
       const currentTargetContracts = channelEvents.reduce((sum, e) => sum + e.target_contracts, 0)
@@ -210,15 +234,14 @@ ${filteredStats.message}
       // 목표 대비 달성률
       const goalAchievementRate = currentTargetContracts > 0 ? Math.round((currentContracts / currentTargetContracts) * 100) : 0
       
-      // 다음달 목표 (현재 목표의 110% 또는 현재 실적의 115%)
-      const nextMonthTargetContracts = Math.max(
-        Math.round(currentTargetContracts * 1.1), 
-        Math.round(currentContracts * 1.15)
-      )
-      const nextMonthTargetEstimates = Math.max(
-        Math.round(currentTargetEstimates * 1.1), 
-        Math.round(currentEstimates * 1.15)
-      )
+      // 다음달 실제 목표 확인 (다음달에 이벤트가 있을 때만 목표 표시)
+      const nextChannelEvents = nextChannelMap[channel] || []
+      const nextMonthTargetContracts = nextChannelEvents.length > 0 
+        ? nextChannelEvents.reduce((sum, e) => sum + e.target_contracts, 0) 
+        : 0
+      const nextMonthTargetEstimates = nextChannelEvents.length > 0 
+        ? nextChannelEvents.reduce((sum, e) => sum + e.target_estimates, 0) 
+        : 0
 
       return {
         channel,
@@ -681,32 +704,36 @@ ${filteredStats.message}
       </Card>
 
       {/* 익월 목표 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <CalendarRange className="w-5 h-5" />
-            <span>익월 목표</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {channelStats.map((channel, index) => (
-              <div key={index} className="text-center p-4 border rounded-lg">
-                <h4 className="font-semibold mb-2">{channel.channel}</h4>
-                <div className="space-y-2">
-                  <div className="text-lg font-bold text-primary">
-                    {channel.nextMonthTargetContracts || 0}건
-                  </div>
-                  <div className="text-xs text-muted-foreground">목표 계약</div>
-                  <div className="text-sm">
-                    {channel.nextMonthTargetEstimates || 0}건 견적
+      {channelStats.length > 0 && channelStats.some(channel => channel.nextMonthTargetContracts > 0 || channel.nextMonthTargetEstimates > 0) && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <CalendarRange className="w-5 h-5" />
+              <span>익월 목표</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {channelStats
+                .filter(channel => channel.nextMonthTargetContracts > 0 || channel.nextMonthTargetEstimates > 0)
+                .map((channel, index) => (
+                <div key={index} className="text-center p-4 border rounded-lg">
+                  <h4 className="font-semibold mb-2">{channel.channel}</h4>
+                  <div className="space-y-2">
+                    <div className="text-lg font-bold text-primary">
+                      {channel.nextMonthTargetContracts || 0}건
+                    </div>
+                    <div className="text-xs text-muted-foreground">목표 계약</div>
+                    <div className="text-sm">
+                      {channel.nextMonthTargetEstimates || 0}건 견적
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 채널별 실적 현황 */}
