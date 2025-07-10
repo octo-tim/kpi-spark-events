@@ -579,37 +579,7 @@ const EventDetail = () => {
                 </div>
               </div>
 
-              {/* 3. 계획달성현황 */}
-              <div className="border border-border rounded-lg p-4">
-                <h3 className="text-lg font-semibold mb-4 text-primary">3. 계획달성현황</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {kpiData.slice(0, 3).map((kpi, index) => (
-                    <div key={index} className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium">{kpi.title}</span>
-                        <span className="text-sm text-muted-foreground">
-                          {kpi.actual}/{kpi.target}{kpi.unit}
-                        </span>
-                      </div>
-                      <Progress value={kpi.rate || 0} className="h-3" />
-                      <div className="flex justify-between text-sm">
-                        <span className={`font-medium ${
-                          (kpi.rate || 0) >= 100 ? 'text-green-600' :
-                          (kpi.rate || 0) >= 80 ? 'text-yellow-600' : 'text-red-600'
-                        }`}>
-                          달성률 {kpi.rate}%
-                        </span>
-                        <span className="text-muted-foreground">
-                          {(kpi.rate || 0) >= 100 ? '목표 달성' :
-                           (kpi.rate || 0) >= 80 ? '양호' : '미달'}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* 4. 이벤트 총평 */}
+              {/* 3. 이벤트 총평 */}
               <div className="border border-border rounded-lg p-4">
                 <h3 className="text-lg font-semibold mb-4 text-primary">4. 이벤트 총평</h3>
                 <div className="space-y-4">
