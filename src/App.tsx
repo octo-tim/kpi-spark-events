@@ -14,6 +14,7 @@ import EventEdit from "./pages/EventEdit";
 import Analytics from "./pages/Analytics";
 import Auth from "./pages/Auth";
 import Reports from "./pages/Reports";
+import ReportCreate from "./pages/ReportCreate";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
                     <Route path="/events/:id/edit" element={<EventEdit />} />
                     <Route path="/analytics" element={<Analytics />} />
                     <Route path="/reports" element={<Reports />} />
+                    <Route path="/reports/create" element={<ReportCreate />} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>
