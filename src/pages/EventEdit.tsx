@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ArrowLeft, Save, Plus, X, DollarSign, MessageSquare, Target, BarChart3, TrendingUp, Printer } from 'lucide-react'
+import { ArrowLeft, Save, Plus, X, DollarSign, MessageSquare, Target, BarChart3, TrendingUp, Printer, Trash2 } from 'lucide-react'
 import { EventType, EventStatus } from '@/components/EventCard'
 import { useReactToPrint } from 'react-to-print'
 import { useRef } from 'react'
@@ -475,6 +475,7 @@ const EventEdit = () => {
             {planAchievements.map((plan, index) => (
               <div key={index} className="border rounded-lg p-4 space-y-3">
                 <div className="flex items-center justify-between">
+                  <div /> {/* 빈 공간 */}
                   {planAchievements.length > 1 && (
                     <Button
                       type="button"
@@ -483,7 +484,7 @@ const EventEdit = () => {
                       onClick={() => removePlanAchievement(index)}
                       className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                     >
-                      <X className="w-4 h-4" />
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   )}
                 </div>

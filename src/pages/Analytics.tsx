@@ -9,7 +9,9 @@ import {
   Users,
   Target,
   Calendar,
-  Download
+  Download,
+  DollarSign,
+  CalendarRange
 } from 'lucide-react'
 
 const Analytics = () => {
@@ -96,10 +98,17 @@ const Analytics = () => {
             채널별 성과 분석과 트렌드를 확인하세요
           </p>
         </div>
-        <Button>
-          <Download className="w-4 h-4 mr-2" />
-          리포트 다운로드
-        </Button>
+        <div className="flex items-center space-x-4">
+          <select className="px-3 py-2 border border-border rounded-md bg-background text-foreground">
+            <option value="monthly">월별</option>
+            <option value="quarterly">분기별</option>
+            <option value="custom">기간설정</option>
+          </select>
+          <Button>
+            <Download className="w-4 h-4 mr-2" />
+            리포트 다운로드
+          </Button>
+        </div>
       </div>
 
       {/* 전체 요약 */}
@@ -144,10 +153,10 @@ const Analytics = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">활성 파트너</p>
-                <p className="text-2xl font-bold">18개</p>
+                <p className="text-sm text-muted-foreground">장당비용</p>
+                <p className="text-2xl font-bold">2,536원</p>
               </div>
-              <Users className="w-8 h-8 text-muted-foreground" />
+              <DollarSign className="w-8 h-8 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>
@@ -193,6 +202,86 @@ const Analytics = () => {
                   <div className="text-center">
                     <div className="text-2xl font-bold">{channel.avgContractRate}%</div>
                     <div className="text-sm text-muted-foreground">평균 달성률</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 채널별 월간 현황 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>채널별 금월 현황 및 실적 비교</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            {channelStats.map((channel, index) => (
+              <div key={index} className="border rounded-lg p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">{channel.channel}</h3>
+                  <Badge variant="secondary">금월 현황</Badge>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <div className="text-sm text-muted-foreground">전월 대비</div>
+                    <div className="flex items-center space-x-2">
+                      {getTrendIcon(channel.trend)}
+                      <span className={`font-bold ${getTrendColor(channel.trend)}`}>
+                        {channel.trendValue > 0 ? '+' : ''}{channel.trendValue}%
+                      </span>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      전월: {Math.round(channel.totalContracts * 0.9)}건
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="text-sm text-muted-foreground">목표 대비</div>
+                    <div className="font-bold text-primary">
+                      {Math.round((channel.totalContracts / (channel.totalContracts * 1.2)) * 100)}%
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      목표: {Math.round(channel.totalContracts * 1.2)}건
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="text-sm text-muted-foreground">현재 실적</div>
+                    <div className="font-bold text-success">{channel.totalContracts}건</div>
+                    <div className="text-xs text-muted-foreground">
+                      달성률: {channel.avgContractRate}%
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 익월 목표 */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <CalendarRange className="w-5 h-5" />
+            <span>익월 목표</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {channelStats.map((channel, index) => (
+              <div key={index} className="text-center p-4 border rounded-lg">
+                <h4 className="font-semibold mb-2">{channel.channel}</h4>
+                <div className="space-y-2">
+                  <div className="text-lg font-bold text-primary">
+                    {Math.round(channel.totalContracts * 1.15)}건
+                  </div>
+                  <div className="text-xs text-muted-foreground">목표 계약</div>
+                  <div className="text-sm">
+                    {Math.round(channel.totalEstimates * 1.1)}건 견적
                   </div>
                 </div>
               </div>

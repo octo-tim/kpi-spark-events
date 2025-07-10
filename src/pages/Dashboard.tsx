@@ -115,12 +115,11 @@ const Dashboard = () => {
           trendValue={kpiData.totalSqm.trendValue}
         />
         <KPICard
-          title="월간 매출"
-          value={kpiData.monthlyRevenue.current}
-          target={kpiData.monthlyRevenue.target}
+          title="장당비용"
+          value={Math.round(kpiData.monthlyRevenue.current / kpiData.totalSqm.current)}
           unit="원"
-          trend={kpiData.monthlyRevenue.trend as any}
-          trendValue={kpiData.monthlyRevenue.trendValue}
+          trend="down"
+          trendValue={-5}
         />
       </div>
 
