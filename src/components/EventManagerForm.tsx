@@ -35,12 +35,20 @@ const EventManagerForm: React.FC<EventManagerFormProps> = ({ onSuccess, onCancel
     e.preventDefault()
     setIsSubmitting(true)
 
+    console.log('담당자 등록 시도:', formData)
+
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('event_managers')
         .insert([formData])
+        .select()
 
-      if (error) throw error
+      if (error) {
+        console.error('담당자 등록 오류:', error)
+        throw error
+      }
+
+      console.log('담당자 등록 성공:', data)
 
       toast({
         title: "담당자 등록 완료",
@@ -70,107 +78,109 @@ const EventManagerForm: React.FC<EventManagerFormProps> = ({ onSuccess, onCancel
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <Users className="w-5 h-5" />
-          <span>새 담당자 등록</span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">이름 *</Label>
-              <div className="relative">
-                <User className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  placeholder="담당자 이름"
-                  className="pl-10"
-                  required
-                />
+    <div className="w-full">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Users className="w-5 h-5" />
+            <span>새 담당자 등록</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">이름 *</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    placeholder="담당자 이름"
+                    className="pl-10"
+                    required
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="email">이메일</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    placeholder="example@company.com"
+                    className="pl-10"
+                  />
+                </div>
               </div>
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="email">이메일</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  placeholder="example@company.com"
-                  className="pl-10"
-                />
-              </div>
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="phone">연락처</Label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
-                  placeholder="010-0000-0000"
-                  className="pl-10"
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="phone">연락처</Label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="phone"
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                    placeholder="010-0000-0000"
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="department">부서</Label>
+                <div className="relative">
+                  <Building className="absolute left-3 top-3 w-4 h-4 text-muted-foreground z-10" />
+                  <Select value={formData.department} onValueChange={(value) => handleInputChange('department', value)}>
+                    <SelectTrigger className="pl-10">
+                      <SelectValue placeholder="부서 선택" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {departments.map((dept) => (
+                        <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
-            
+
             <div className="space-y-2">
-              <Label htmlFor="department">부서</Label>
-              <div className="relative">
-                <Building className="absolute left-3 top-3 w-4 h-4 text-muted-foreground z-10" />
-                <Select value={formData.department} onValueChange={(value) => handleInputChange('department', value)}>
-                  <SelectTrigger className="pl-10">
-                    <SelectValue placeholder="부서 선택" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {departments.map((dept) => (
-                      <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <Label htmlFor="position">직급</Label>
+              <Select value={formData.position} onValueChange={(value) => handleInputChange('position', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="직급 선택" />
+                </SelectTrigger>
+                <SelectContent>
+                  {positions.map((pos) => (
+                    <SelectItem key={pos} value={pos}>{pos}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="position">직급</Label>
-            <Select value={formData.position} onValueChange={(value) => handleInputChange('position', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="직급 선택" />
-              </SelectTrigger>
-              <SelectContent>
-                {positions.map((pos) => (
-                  <SelectItem key={pos} value={pos}>{pos}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex justify-end space-x-2 pt-4">
-            {onCancel && (
-              <Button type="button" variant="outline" onClick={onCancel}>
-                취소
+            <div className="flex justify-end space-x-2 pt-4">
+              {onCancel && (
+                <Button type="button" variant="outline" onClick={onCancel}>
+                  취소
+                </Button>
+              )}
+              <Button type="button" disabled={isSubmitting} onClick={handleSubmit}>
+                {isSubmitting ? '등록 중...' : '담당자 등록'}
               </Button>
-            )}
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? '등록 중...' : '담당자 등록'}
-            </Button>
+            </div>
           </div>
-        </form>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
 
