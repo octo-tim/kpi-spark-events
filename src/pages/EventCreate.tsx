@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Calendar, MapPin, Users, Target, ArrowLeft, Gift, FileText, Printer } from 'lucide-react'
+import { Calendar, MapPin, Users, Target, ArrowLeft, Gift, FileText, Printer, Plus, X, ListChecks } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { EventType } from '@/components/EventCard'
 import { useReactToPrint } from 'react-to-print'
@@ -47,8 +47,30 @@ const EventCreate = () => {
     previousReflection: ''
   })
 
+  const [executionPlans, setExecutionPlans] = useState([
+    { title: '', content: '' },
+    { title: '', content: '' },
+    { title: '', content: '' }
+  ])
+
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
+  }
+
+  const handleExecutionPlanChange = (index: number, field: 'title' | 'content', value: string) => {
+    setExecutionPlans(prev => prev.map((plan, i) => 
+      i === index ? { ...plan, [field]: value } : plan
+    ))
+  }
+
+  const addExecutionPlan = () => {
+    setExecutionPlans(prev => [...prev, { title: '', content: '' }])
+  }
+
+  const removeExecutionPlan = (index: number) => {
+    if (executionPlans.length > 1) {
+      setExecutionPlans(prev => prev.filter((_, i) => i !== index))
+    }
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -399,10 +421,71 @@ const EventCreate = () => {
                 id="previousReflection"
                 value={formData.previousReflection}
                 onChange={(e) => handleInputChange('previousReflection', e.target.value)}
-                placeholder="전회차 이벤트에서 반영할 사항들을 입력하세요"
+                placeholder="전회차 이벤트의 결과보고서 주요 내용을 요약하세요."
                 rows={4}
               />
             </div>
+          </CardContent>
+        </Card>
+
+        {/* 실행계획 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <ListChecks className="w-5 h-5" />
+              <span>실행계획</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {executionPlans.map((plan, index) => (
+              <div key={index} className="border rounded-lg p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium">계획 {index + 1}</Label>
+                  {executionPlans.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeExecutionPlan(index)}
+                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor={`executionTitle${index}`}>제목</Label>
+                  <Input
+                    id={`executionTitle${index}`}
+                    value={plan.title}
+                    onChange={(e) => handleExecutionPlanChange(index, 'title', e.target.value)}
+                    placeholder="실행계획 제목을 입력하세요"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor={`executionContent${index}`}>내용</Label>
+                  <Textarea
+                    id={`executionContent${index}`}
+                    value={plan.content}
+                    onChange={(e) => handleExecutionPlanChange(index, 'content', e.target.value)}
+                    placeholder="실행계획 내용을 입력하세요"
+                    rows={3}
+                  />
+                </div>
+              </div>
+            ))}
+            
+            <Button
+              type="button"
+              variant="outline"
+              onClick={addExecutionPlan}
+              className="w-full flex items-center space-x-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>실행계획 추가</span>
+            </Button>
           </CardContent>
         </Card>
 
