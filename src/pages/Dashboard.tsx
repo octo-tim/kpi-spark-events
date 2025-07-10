@@ -8,7 +8,17 @@ const Dashboard = () => {
   const [periodFilter, setPeriodFilter] = useState('monthly')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
-  const [filteredData, setFilteredData] = useState(null)
+  const [filteredData, setFilteredData] = useState<{
+    message: string
+    kpiData: {
+      totalContracts: number
+      totalEstimates: number
+      totalSqm: number
+      monthlyRevenue: number
+    }
+    channelData: typeof channelPerformanceData
+    recentEvents: typeof recentEvents
+  } | null>(null)
 
   const handlePeriodChange = (value: string) => {
     setPeriodFilter(value)
@@ -20,52 +30,81 @@ const Dashboard = () => {
   }
 
   const filterData = (period: string, start: string, end: string) => {
-    console.log('=== 필터링 시작 ===')
-    console.log('Filtering data:', { period, start, end })
+    let multiplier = 1
     
-    // 기간에 따른 데이터 필터링 시뮬레이션
+    // 기간별 데이터 조정 배율 설정
     if (period === 'monthly' && start) {
-      console.log('월간 필터링 조건 충족')
-      const monthData = start.split('-')
-      const year = monthData[0]
-      const month = monthData[1]
-      const newFilteredData = { 
-        message: `${year}년 ${parseInt(month)}월 데이터로 필터링됨`,
-        contracts: Math.round(kpiData.totalContracts.current * 0.8)
-      }
-      console.log('월간 필터링된 데이터:', newFilteredData)
-      setFilteredData(newFilteredData)
+      multiplier = 0.8 // 월간은 80%
     } else if (period === 'quarterly' && start) {
-      console.log('분기별 필터링 조건 충족')
+      multiplier = 1.2 // 분기별은 120%
+    } else if (period === 'custom' && start && end) {
+      multiplier = 0.9 // 사용자 정의는 90%
+    } else {
+      if (period === 'custom' && (!start || !end)) {
+        setFilteredData(null)
+      }
+      return
+    }
+
+    // 필터링된 KPI 데이터 생성
+    const filteredKpiData = {
+      totalContracts: Math.round(kpiData.totalContracts.current * multiplier),
+      totalEstimates: Math.round(kpiData.totalEstimates.current * multiplier),
+      totalSqm: Math.round(kpiData.totalSqm.current * multiplier),
+      monthlyRevenue: Math.round(kpiData.monthlyRevenue.current * multiplier)
+    }
+
+    // 필터링된 채널 데이터 생성
+    const filteredChannelData = channelPerformanceData.map(channel => ({
+      ...channel,
+      contracts: Math.round(channel.contracts * multiplier),
+      estimates: Math.round(channel.estimates * multiplier),
+      sqm: Math.round(channel.sqm * multiplier),
+      totalCost: Math.round(channel.totalCost * multiplier)
+    }))
+
+    // 필터링된 이벤트 데이터 (기간에 따라 실제 필터링 적용)
+    const filteredEvents = recentEvents.filter(event => {
+      if (period === 'monthly' && start) {
+        const eventDate = new Date(event.startDate)
+        const [year, month] = start.split('-')
+        return eventDate.getFullYear().toString() === year && 
+               (eventDate.getMonth() + 1).toString().padStart(2, '0') === month
+      } else if (period === 'quarterly' && start) {
+        const eventDate = new Date(event.startDate)
+        const year = eventDate.getFullYear()
+        const quarter = Math.ceil((eventDate.getMonth() + 1) / 3)
+        return start === `${year}-Q${quarter}`
+      } else if (period === 'custom' && start && end) {
+        const eventDate = new Date(event.startDate)
+        return eventDate >= new Date(start) && eventDate <= new Date(end)
+      }
+      return true
+    })
+
+    // 메시지 생성
+    let message = ''
+    if (period === 'monthly' && start) {
+      const [year, month] = start.split('-')
+      message = `${year}년 ${parseInt(month)}월 데이터로 필터링됨`
+    } else if (period === 'quarterly' && start) {
       const quarterMap = {
         '2024-Q1': '2024년 1분기',
-        '2024-Q2': '2024년 2분기', 
+        '2024-Q2': '2024년 2분기',
         '2024-Q3': '2024년 3분기',
         '2024-Q4': '2024년 4분기'
       }
-      const newFilteredData = { 
-        message: `${quarterMap[start as keyof typeof quarterMap]} 데이터로 필터링됨`,
-        contracts: Math.round(kpiData.totalContracts.current * 1.2)
-      }
-      console.log('분기별 필터링된 데이터:', newFilteredData)
-      setFilteredData(newFilteredData)
+      message = `${quarterMap[start as keyof typeof quarterMap]} 데이터로 필터링됨`
     } else if (period === 'custom' && start && end) {
-      console.log('사용자 정의 필터링 조건 충족')
-      const newFilteredData = { 
-        message: `${start}부터 ${end}까지 데이터로 필터링됨`,
-        contracts: Math.round(kpiData.totalContracts.current * 0.9)
-      }
-      console.log('사용자 정의 필터링된 데이터:', newFilteredData)
-      setFilteredData(newFilteredData)
-    } else {
-      console.log('필터링 조건 불충족, 기존 데이터 유지')
-      // 조건에 맞지 않는 경우에만 null로 설정
-      if (period === 'custom' && (!start || !end)) {
-        console.log('사용자 정의 기간이지만 날짜가 불완전함 - 데이터 초기화')
-        setFilteredData(null)
-      }
+      message = `${start}부터 ${end}까지 데이터로 필터링됨`
     }
-    console.log('=== 필터링 완료 ===')
+
+    setFilteredData({
+      message,
+      kpiData: filteredKpiData,
+      channelData: filteredChannelData,
+      recentEvents: filteredEvents
+    })
   }
 
   // 날짜 변경시 자동 필터링
@@ -249,16 +288,24 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {filteredData && (
           <div className="col-span-full">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-              <p className="text-blue-800 font-medium">{filteredData.message}</p>
-              <p className="text-blue-600 text-sm">필터링된 계약건수: {Math.round(filteredData.contracts)}건</p>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 flex justify-between items-center">
+              <div>
+                <p className="text-blue-800 font-medium">{filteredData.message}</p>
+                <p className="text-blue-600 text-sm">필터링된 계약건수: {filteredData.kpiData.totalContracts}건</p>
+              </div>
+              <button 
+                onClick={() => setFilteredData(null)}
+                className="px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors text-sm"
+              >
+                필터 초기화
+              </button>
             </div>
           </div>
         )}
         
         <KPICard
           title="총 계약건수"
-          value={filteredData?.contracts ? Math.round(filteredData.contracts) : kpiData.totalContracts.current}
+          value={filteredData?.kpiData.totalContracts ?? kpiData.totalContracts.current}
           target={kpiData.totalContracts.target}
           unit="건"
           trend={kpiData.totalContracts.trend as any}
@@ -266,7 +313,7 @@ const Dashboard = () => {
         />
         <KPICard
           title="총 견적건수"
-          value={kpiData.totalEstimates.current}
+          value={filteredData?.kpiData.totalEstimates ?? kpiData.totalEstimates.current}
           target={kpiData.totalEstimates.target}
           unit="건"
           trend={kpiData.totalEstimates.trend as any}
@@ -274,7 +321,7 @@ const Dashboard = () => {
         />
         <KPICard
           title="총 계약장수"
-          value={kpiData.totalSqm.current}
+          value={filteredData?.kpiData.totalSqm ?? kpiData.totalSqm.current}
           target={kpiData.totalSqm.target}
           unit="장"
           trend={kpiData.totalSqm.trend as any}
@@ -282,7 +329,7 @@ const Dashboard = () => {
         />
         <KPICard
           title="장당비용"
-          value={Math.round(kpiData.monthlyRevenue.current / kpiData.totalSqm.current)}
+          value={filteredData?.kpiData.monthlyRevenue ? Math.round(filteredData.kpiData.monthlyRevenue / filteredData.kpiData.totalSqm) : Math.round(kpiData.monthlyRevenue.current / kpiData.totalSqm.current)}
           unit="원"
           trend="down"
           trendValue={-5}
@@ -298,8 +345,9 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {channelPerformanceData.map((item, index) => {
-                const maxCost = Math.max(...channelPerformanceData.map(d => d.costPerSqm))
+              {(filteredData?.channelData ?? channelPerformanceData).map((item, index) => {
+                const dataToUse = filteredData?.channelData ?? channelPerformanceData
+                const maxCost = Math.max(...dataToUse.map(d => d.costPerSqm))
                 const percentage = (item.costPerSqm / maxCost) * 100
                 return (
                   <div key={item.channel} className="space-y-2">
@@ -328,7 +376,7 @@ const Dashboard = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {channelPerformanceData.map((channel) => (
+            {(filteredData?.channelData ?? channelPerformanceData).map((channel) => (
               <div key={channel.channel} className="text-center space-y-2">
                 <h4 className="font-semibold text-sm">{channel.channel}</h4>
                 <div className="space-y-1">
@@ -360,7 +408,7 @@ const Dashboard = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {recentEvents.map((event) => (
+            {(filteredData?.recentEvents ?? recentEvents).map((event) => (
               <EventCard key={event.id} event={event} />
             ))}
           </div>
