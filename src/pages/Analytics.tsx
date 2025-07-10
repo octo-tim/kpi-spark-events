@@ -261,6 +261,8 @@ ${filteredStats.message}
 
   // 이벤트 테이블 필터링 함수
   const filterEventTable = (filter: string, start: string, end: string) => {
+    console.log('이벤트 테이블 필터링:', { filter, start, end })
+    
     let filtered = allEvents
 
     if (filter === 'completed') {
@@ -270,24 +272,41 @@ ${filteredStats.message}
     } else if (filter === 'planned') {
       filtered = allEvents.filter(event => event.status === '계획중')
     } else if (filter === 'custom' && start && end) {
+      // 날짜 범위 검색 개선
       filtered = allEvents.filter(event => {
         const eventStart = new Date(event.startDate)
+        const eventEnd = new Date(event.endDate)
         const filterStart = new Date(start)
         const filterEnd = new Date(end)
-        return eventStart >= filterStart && eventStart <= filterEnd
+        
+        // 이벤트 기간이 검색 기간과 겹치는지 확인
+        return (eventStart <= filterEnd && eventEnd >= filterStart)
       })
+      console.log(`기간 검색 결과: ${filtered.length}개 이벤트`)
+    } else if (filter === 'all') {
+      filtered = allEvents
     }
 
+    console.log(`필터링된 이벤트 수: ${filtered.length}`)
     setFilteredEvents(filtered)
   }
 
   const handleEventTableFilterChange = (value: string) => {
+    console.log('이벤트 테이블 필터 변경:', value)
     setEventTableFilter(value)
+    
     if (value !== 'custom') {
       setEventSearchStart('')
       setEventSearchEnd('')
+      setFilteredEvents(null) // 'all' 선택시 필터 초기화
     }
-    filterEventTable(value, eventSearchStart, eventSearchEnd)
+    
+    // 즉시 필터링 실행
+    if (value !== 'custom') {
+      filterEventTable(value, '', '')
+    } else if (eventSearchStart && eventSearchEnd) {
+      filterEventTable(value, eventSearchStart, eventSearchEnd)
+    }
   }
 
   React.useEffect(() => {
