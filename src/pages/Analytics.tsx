@@ -152,96 +152,16 @@ ${filteredStats.message}
     }
   }
 
-  // 샘플 이벤트 데이터
-  const getSampleEvents = () => [
-    {
-      id: 'sample-1',
-      title: '서울 베이비키즈 페어 2024',
-      type: '베이비페어',
-      status: '완료',
-      start_date: '2024-08-01',
-      end_date: '2024-08-03',
-      partner: '베이비페어',
-      target_contracts: 35,
-      actual_contracts: 95,
-      target_estimates: 85,
-      actual_estimates: 215,
-      target_sqm: 1200,
-      actual_sqm: 2850,
-      total_cost: 12000000,
-      efficiency: 44.2,
-      target_cost_per_sqm: 10000,
-      created_at: '2024-07-01T00:00:00Z',
-      updated_at: '2024-08-03T00:00:00Z',
-      promotion_info: null,
-      execution_plan: null,
-      previous_improvements: null,
-      future_improvements: null,
-      event_review: null,
-      customer_feedback: null
-    },
-    {
-      id: 'sample-2',
-      title: '여름 시즌 특별 프로모션',
-      type: '라이브커머스',
-      status: '완료',
-      start_date: '2024-08-10',
-      end_date: '2024-08-12',
-      partner: '라이브커머스',
-      target_contracts: 25,
-      actual_contracts: 52,
-      target_estimates: 60,
-      actual_estimates: 125,
-      target_sqm: 800,
-      actual_sqm: 1750,
-      total_cost: 8000000,
-      efficiency: 41.6,
-      target_cost_per_sqm: 11429,
-      created_at: '2024-07-15T00:00:00Z',
-      updated_at: '2024-08-12T00:00:00Z',
-      promotion_info: null,
-      execution_plan: null,
-      previous_improvements: null,
-      future_improvements: null,
-      event_review: null,
-      customer_feedback: null
-    },
-    {
-      id: 'sample-3',
-      title: '롯데 베이비페어 참가',
-      type: '베이비페어',
-      status: '완료',
-      start_date: '2024-08-20',
-      end_date: '2024-08-22',
-      partner: '베이비페어',
-      target_contracts: 20,
-      actual_contracts: 45,
-      target_estimates: 50,
-      actual_estimates: 118,
-      target_sqm: 600,
-      actual_sqm: 1580,
-      total_cost: 6000000,
-      efficiency: 38.1,
-      target_cost_per_sqm: 13924,
-      created_at: '2024-08-01T00:00:00Z',
-      updated_at: '2024-08-22T00:00:00Z',
-      promotion_info: null,
-      execution_plan: null,
-      previous_improvements: null,
-      future_improvements: null,
-      event_review: null,
-      customer_feedback: null
-    }
-  ] as Event[]
-
   // 실제 데이터 기반 통계 계산
   const getChannelStats = async (currentEvents: Event[], currentYear: string, currentMonth: string) => {
-    // 데이터가 없으면 샘플 데이터 사용
-    const eventsToUse = currentEvents.length > 0 ? currentEvents : getSampleEvents()
+    // 데이터가 없으면 빈 배열 반환
+    if (currentEvents.length === 0) {
+      return []
+    }
     
     const channelMap: { [key: string]: Event[] } = {}
     
-    eventsToUse.forEach(event => {
+    currentEvents.forEach(event => {
       if (!channelMap[event.type]) {
         channelMap[event.type] = []
       }
