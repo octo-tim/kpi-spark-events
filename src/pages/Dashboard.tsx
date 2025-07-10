@@ -2,20 +2,6 @@ import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import KPICard from '@/components/KPICard'
 import EventCard, { EventData } from '@/components/EventCard'
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line
-} from 'recharts'
 
 const Dashboard = () => {
   // 샘플 데이터 - 추후 Supabase 연동 시 실제 데이터로 교체
@@ -88,7 +74,9 @@ const Dashboard = () => {
     { month: '1월', contracts: 67, estimates: 165, sqm: 1720 }
   ]
 
-  const CHART_COLORS = ['#0EA5E9', '#EF4444', '#10B981', '#8B5CF6']
+  const getMaxValue = (data: typeof channelPerformanceData, key: keyof typeof channelPerformanceData[0]) => {
+    return Math.max(...data.map(item => typeof item[key] === 'number' ? item[key] : 0))
+  }
 
   return (
     <div className="space-y-8">
@@ -141,52 +129,87 @@ const Dashboard = () => {
         {/* Channel Performance */}
         <Card>
           <CardHeader>
-            <CardTitle>채널별 성과 비교</CardTitle>
+            <CardTitle>채널별 계약 성과</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={channelPerformanceData}>
-                <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                <XAxis dataKey="channel" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="contracts" fill="hsl(var(--primary))" name="계약건수" />
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="space-y-4">
+              {channelPerformanceData.map((item, index) => {
+                const percentage = (item.contracts / getMaxValue(channelPerformanceData, 'contracts')) * 100
+                return (
+                  <div key={item.channel} className="space-y-2">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="font-medium">{item.channel}</span>
+                      <span className="text-muted-foreground">{item.contracts}건</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div 
+                        className="h-2 rounded-full bg-gradient-primary transition-all duration-500"
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           </CardContent>
         </Card>
 
         {/* Monthly Trend */}
         <Card>
           <CardHeader>
-            <CardTitle>월별 성과 추이</CardTitle>
+            <CardTitle>월별 계약 추이</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={monthlyTrendData}>
-                <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Line 
-                  type="monotone" 
-                  dataKey="contracts" 
-                  stroke="hsl(var(--primary))" 
-                  strokeWidth={2}
-                  name="계약건수"
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="estimates" 
-                  stroke="hsl(var(--success))" 
-                  strokeWidth={2}
-                  name="견적건수"
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            <div className="space-y-4">
+              {monthlyTrendData.map((item, index) => {
+                const maxContracts = Math.max(...monthlyTrendData.map(d => d.contracts))
+                const height = (item.contracts / maxContracts) * 100
+                return (
+                  <div key={item.month} className="flex items-end space-x-3">
+                    <span className="text-xs text-muted-foreground w-8">{item.month}</span>
+                    <div className="flex-1 flex items-end space-x-1">
+                      <div 
+                        className="bg-gradient-primary rounded-t-sm min-h-[8px] w-full transition-all duration-500"
+                        style={{ height: `${Math.max(height, 10)}%` }}
+                        title={`${item.contracts}건`}
+                      />
+                    </div>
+                    <span className="text-xs font-medium w-8 text-right">{item.contracts}</span>
+                  </div>
+                )
+              })}
+            </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Channel Statistics */}
+      <Card>
+        <CardHeader>
+          <CardTitle>채널별 전체 성과</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {channelPerformanceData.map((channel) => (
+              <div key={channel.channel} className="text-center space-y-2">
+                <h4 className="font-semibold text-sm">{channel.channel}</h4>
+                <div className="space-y-1">
+                  <div className="text-lg font-bold text-primary">{channel.contracts}건</div>
+                  <div className="text-xs text-muted-foreground">계약건수</div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-sm font-medium">{channel.estimates}건</div>
+                  <div className="text-xs text-muted-foreground">견적건수</div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-sm font-medium">{channel.sqm.toLocaleString()}장</div>
+                  <div className="text-xs text-muted-foreground">계약장수</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Recent Events */}
       <Card>
