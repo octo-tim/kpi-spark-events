@@ -215,10 +215,10 @@ const EventDetail = () => {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <Users className="w-4 h-4 text-muted-foreground" />
+              <Phone className="w-4 h-4 text-muted-foreground" />
               <div>
-                <div className="text-sm font-medium">제휴 파트너</div>
-                <div className="text-xs text-muted-foreground">{currentEvent.partner || '미정'}</div>
+                <div className="text-sm font-medium">현장담당자</div>
+                <div className="text-xs text-muted-foreground">이현장 (010-1111-2222)</div>
               </div>
             </div>
           </CardContent>
@@ -302,63 +302,6 @@ const EventDetail = () => {
             </CardContent>
           </Card>
 
-          {/* 상세 실적 데이터 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>상세 실적 데이터</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <h4 className="font-medium text-foreground">계약 현황</h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">목표 계약건수</span>
-                      <span className="text-sm font-medium">{currentEvent.target_contracts}건</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">실제 계약건수</span>
-                      <span className="text-sm font-medium">{currentEvent.actual_contracts}건</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">목표 계약장수</span>
-                      <span className="text-sm font-medium">{currentEvent.target_sqm}장</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">실제 계약장수</span>
-                      <span className="text-sm font-medium">{currentEvent.actual_sqm}장</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h4 className="font-medium text-foreground">견적 현황</h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">목표 견적건수</span>
-                      <span className="text-sm font-medium">{currentEvent.target_estimates}건</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">실제 견적건수</span>
-                      <span className="text-sm font-medium">{currentEvent.actual_estimates}건</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">견적→계약 전환율</span>
-                      <span className="text-sm font-medium">
-                        {currentEvent.actual_estimates > 0 
-                          ? Math.round((currentEvent.actual_contracts / currentEvent.actual_estimates) * 100)
-                          : 0}%
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">효율성 지수</span>
-                      <span className="text-sm font-medium">{currentEvent.efficiency}%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
           {/* 비용 내역 */}
           {costItems.length > 0 && (
@@ -599,103 +542,9 @@ const EventDetail = () => {
           </Card>
         </div>
 
-        {/* 오른쪽 영역 - 추가 정보 */}
+        {/* 오른쪽 영역 - KPI 요약 */}
         <div className="space-y-6">
-          {/* 이벤트 정보 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>이벤트 상세정보</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3">
-                  <Calendar className="w-4 h-4 text-muted-foreground" />
-                  <div className="flex-1">
-                    <div className="font-medium text-sm">이벤트 기간</div>
-                    <div className="text-sm text-muted-foreground">
-                      {currentEvent.start_date} ~ {currentEvent.end_date}
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-3">
-                  <MapPin className="w-4 h-4 text-muted-foreground" />
-                  <div className="flex-1">
-                    <div className="font-medium text-sm">장소</div>
-                    <div className="text-sm text-muted-foreground">
-                      {currentEvent.type === '라이브커머스' ? '온라인 라이브 스튜디오' : 
-                       currentEvent.type === '베이비페어' ? '롯데월드몰 베이비페어' :
-                       currentEvent.type === '입주박람회' ? '킨텍스 전시장' : '미정'}
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-3">
-                  <Users className="w-4 h-4 text-muted-foreground" />
-                  <div className="flex-1">
-                    <div className="font-medium text-sm">제휴 파트너</div>
-                    <div className="text-sm text-muted-foreground">{currentEvent.partner || '미정'}</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-3">
-                  <Phone className="w-4 h-4 text-muted-foreground" />
-                  <div className="flex-1">
-                    <div className="font-medium text-sm">담당자</div>
-                    <div className="text-sm text-muted-foreground">김영업 (010-1234-5678)</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-border">
-                <h4 className="font-medium mb-2 text-sm">이벤트 설명</h4>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {currentEvent.type === '라이브커머스' && 
-                    '신혼부부를 대상으로 한 맞춤형 인테리어 라이브 쇼핑 이벤트입니다.'}
-                  {currentEvent.type === '베이비페어' && 
-                    '예비 부모와 육아맘을 위한 베이비용품 전시 및 판매 이벤트입니다.'}
-                  {currentEvent.type === '입주박람회' && 
-                    '신규 아파트 입주민을 위한 인테리어 상담 및 계약 이벤트입니다.'}
-                  {currentEvent.type === '인플루언서공구' && 
-                    '인플루언서와 함께하는 특가 공동구매 이벤트입니다.'}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* 담당자 정보 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>담당자 정보</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                    <Users className="w-5 h-5 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-medium text-sm">이벤트 매니저</div>
-                    <div className="text-sm text-muted-foreground">김관리 (마케팅팀)</div>
-                    <div className="text-xs text-muted-foreground">010-9876-5432</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-success/10 rounded-full flex items-center justify-center">
-                    <Phone className="w-5 h-5 text-success" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-medium text-sm">현장 담당자</div>
-                    <div className="text-sm text-muted-foreground">이현장 (영업팀)</div>
-                    <div className="text-xs text-muted-foreground">010-1111-2222</div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* 상태 및 통계 */}
+          {/* 현재 상태 */}
           <Card>
             <CardHeader>
               <CardTitle>이벤트 상태</CardTitle>
