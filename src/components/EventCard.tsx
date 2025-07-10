@@ -163,7 +163,7 @@ const EventCard = ({ event, className }: EventCardProps) => {
         <Button variant="outline" size="sm" asChild className="flex-1">
           <Link to={`/events/${event.id}/edit`}>
             <Edit className="w-4 h-4 mr-1" />
-            수정
+            보고서작성
           </Link>
         </Button>
       </CardFooter>

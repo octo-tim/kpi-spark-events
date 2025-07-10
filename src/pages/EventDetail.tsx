@@ -191,7 +191,7 @@ const EventDetail = () => {
         <Button asChild>
           <Link to={`/events/${currentEvent.id}/edit`}>
             <Edit className="w-4 h-4 mr-2" />
-            수정
+            보고서작성
           </Link>
         </Button>
       </div>
