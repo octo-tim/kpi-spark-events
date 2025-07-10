@@ -112,7 +112,7 @@ const Reports = () => {
           {/* 이벤트 유형별 결과 표 */}
           <EventTypeTable
             events={filteredEvents}
-            title="1. 이벤트 유형별 성과 분석"
+            title="이벤트 유형별 성과 분석"
           />
 
           {/* 주요 성과지표별 그래프 */}
