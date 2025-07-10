@@ -20,6 +20,8 @@ import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 import { EventStatus } from '@/components/EventCard'
 import EventManagerForm from '@/components/EventManagerForm'
+import PartnerForm from '@/components/PartnerForm'
+import LocationForm from '@/components/LocationForm'
 
 const EventCreate = () => {
   const navigate = useNavigate()
@@ -61,11 +63,17 @@ const EventCreate = () => {
   ])
   
   const [showManagerForm, setShowManagerForm] = useState(false)
+  const [showPartnerForm, setShowPartnerForm] = useState(false)
+  const [showLocationForm, setShowLocationForm] = useState(false)
   const [eventManagers, setEventManagers] = useState<any[]>([])
+  const [partners, setPartners] = useState<any[]>([])
+  const [locations, setLocations] = useState<any[]>([])
 
-  // 담당자 목록 로드
+  // 데이터 로드
   useEffect(() => {
     loadEventManagers()
+    loadPartners()
+    loadLocations()
   }, [])
 
   const loadEventManagers = async () => {
@@ -80,6 +88,36 @@ const EventCreate = () => {
       setEventManagers(data || [])
     } catch (error) {
       console.error('Error loading managers:', error)
+    }
+  }
+
+  const loadPartners = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('partners')
+        .select('*')
+        .eq('is_active', true)
+        .order('name')
+
+      if (error) throw error
+      setPartners(data || [])
+    } catch (error) {
+      console.error('Error loading partners:', error)
+    }
+  }
+
+  const loadLocations = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('locations')
+        .select('*')
+        .eq('is_active', true)
+        .order('name')
+
+      if (error) throw error
+      setLocations(data || [])
+    } catch (error) {
+      console.error('Error loading locations:', error)
     }
   }
 
@@ -247,43 +285,9 @@ const EventCreate = () => {
                 rows={3}
               />
             </div>
-          </CardContent>
-        </Card>
-
-        {/* 파트너 & 장소 정보 */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Users className="w-5 h-5" />
-              <span>파트너 & 장소 정보</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="partner">제휴 파트너 *</Label>
-                <Input
-                  id="partner"
-                  value={formData.partner}
-                  onChange={(e) => handleInputChange('partner', e.target.value)}
-                  placeholder="제휴 파트너명을 입력하세요"
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="location">장소</Label>
-                <Input
-                  id="location"
-                  value={formData.location}
-                  onChange={(e) => handleInputChange('location', e.target.value)}
-                  placeholder="이벤트 장소를 입력하세요"
-                />
-              </div>
-            </div>
 
             <div className="space-y-2">
-              <Label htmlFor="manager">이벤트 관리자</Label>
+              <Label htmlFor="manager">이벤트 담당자</Label>
               <div className="flex space-x-2">
                 <Select value={formData.manager} onValueChange={(value) => handleInputChange('manager', value)}>
                   <SelectTrigger className="flex-1">
@@ -307,6 +311,75 @@ const EventCreate = () => {
                   <UserPlus className="w-4 h-4" />
                   <span>신규</span>
                 </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 파트너 & 장소 정보 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Users className="w-5 h-5" />
+              <span>파트너 & 장소 정보</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="partner">제휴 파트너 *</Label>
+                <div className="flex space-x-2">
+                  <Select value={formData.partner} onValueChange={(value) => handleInputChange('partner', value)}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="파트너 선택" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {partners.map((partner) => (
+                        <SelectItem key={partner.id} value={partner.name}>
+                          {partner.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowPartnerForm(true)}
+                    className="flex items-center space-x-1"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                    <span>신규</span>
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="location">장소</Label>
+                <div className="flex space-x-2">
+                  <Select value={formData.location} onValueChange={(value) => handleInputChange('location', value)}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="장소 선택" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {locations.map((location) => (
+                        <SelectItem key={location.id} value={location.name}>
+                          {location.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowLocationForm(true)}
+                    className="flex items-center space-x-1"
+                  >
+                    <MapPin className="w-4 h-4" />
+                    <span>신규</span>
+                  </Button>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -590,6 +663,36 @@ const EventCreate = () => {
                   loadEventManagers()
                 }}
                 onCancel={() => setShowManagerForm(false)}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* 파트너 등록 폼 */}
+        {showPartnerForm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-background rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <PartnerForm
+                onSuccess={() => {
+                  setShowPartnerForm(false)
+                  loadPartners()
+                }}
+                onCancel={() => setShowPartnerForm(false)}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* 장소 등록 폼 */}
+        {showLocationForm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-background rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <LocationForm
+                onSuccess={() => {
+                  setShowLocationForm(false)
+                  loadLocations()
+                }}
+                onCancel={() => setShowLocationForm(false)}
               />
             </div>
           </div>
