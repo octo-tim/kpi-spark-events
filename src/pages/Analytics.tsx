@@ -67,9 +67,13 @@ const Analytics = () => {
 
       // 통계 계산
       const totalContracts = filteredEventData.reduce((sum, event) => sum + event.actual_contracts, 0)
+      const totalTargetContracts = filteredEventData.reduce((sum, event) => sum + event.target_contracts, 0)
       const totalSqm = filteredEventData.reduce((sum, event) => sum + event.actual_sqm, 0)
       const totalCost = filteredEventData.reduce((sum, event) => sum + (event.total_cost || 0), 0)
       const costPerSqm = totalSqm > 0 ? Math.round(totalCost / totalSqm) : 0
+      
+      // 평균 달성률 계산 (실제 계약건수 / 목표 계약건수 * 100)
+      const averageAchievementRate = totalTargetContracts > 0 ? Math.round((totalContracts / totalTargetContracts) * 100) : 0
       
       let message = ''
       if (periodFilter === 'monthly') {
@@ -85,9 +89,11 @@ const Analytics = () => {
         message,
         totalEvents: filteredEventData.length,
         totalContracts,
+        totalTargetContracts,
         totalSqm,
         totalCost,
         costPerSqm,
+        averageAchievementRate,
         filteredEventData
       })
 
@@ -491,7 +497,7 @@ ${filteredStats.message}
         />
         <KPICard
           title="평균 달성률"
-          value={76.8}
+          value={filteredStats?.averageAchievementRate || 0}
           unit="%"
           trend="down"
           trendValue={-3}
