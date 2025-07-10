@@ -92,6 +92,7 @@ const EventCreate = () => {
   }
 
   const loadPartners = async () => {
+    console.log('파트너 목록 로드 시작')
     try {
       const { data, error } = await supabase
         .from('partners')
@@ -99,7 +100,12 @@ const EventCreate = () => {
         .eq('is_active', true)
         .order('name')
 
-      if (error) throw error
+      if (error) {
+        console.error('파트너 로드 오류:', error)
+        throw error
+      }
+      
+      console.log('파트너 로드 성공:', data)
       setPartners(data || [])
     } catch (error) {
       console.error('Error loading partners:', error)
@@ -107,6 +113,7 @@ const EventCreate = () => {
   }
 
   const loadLocations = async () => {
+    console.log('장소 목록 로드 시작')
     try {
       const { data, error } = await supabase
         .from('locations')
@@ -114,7 +121,12 @@ const EventCreate = () => {
         .eq('is_active', true)
         .order('name')
 
-      if (error) throw error
+      if (error) {
+        console.error('장소 로드 오류:', error)
+        throw error
+      }
+
+      console.log('장소 로드 성공:', data)
       setLocations(data || [])
     } catch (error) {
       console.error('Error loading locations:', error)

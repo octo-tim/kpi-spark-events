@@ -30,8 +30,10 @@ const PartnerForm = ({ onSuccess, onCancel }: PartnerFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    console.log('파트너 등록 시도:', formData)
+    
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('partners')
         .insert([
           {
@@ -42,9 +44,15 @@ const PartnerForm = ({ onSuccess, onCancel }: PartnerFormProps) => {
             description: formData.description
           }
         ])
+        .select()
 
-      if (error) throw error
+      if (error) {
+        console.error('파트너 등록 오류:', error)
+        throw error
+      }
 
+      console.log('파트너 등록 성공:', data)
+      
       toast({
         title: "성공",
         description: "파트너가 성공적으로 등록되었습니다."
@@ -62,81 +70,83 @@ const PartnerForm = ({ onSuccess, onCancel }: PartnerFormProps) => {
   }
 
   return (
-    <Card className="w-full">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>새 파트너 등록</CardTitle>
-        <Button variant="ghost" size="sm" onClick={onCancel}>
-          <X className="w-4 h-4" />
-        </Button>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">파트너명 *</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-              placeholder="파트너명을 입력하세요"
-              required
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="w-full">
+      <Card className="w-full">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>새 파트너 등록</CardTitle>
+          <Button variant="ghost" size="sm" onClick={onCancel}>
+            <X className="w-4 h-4" />
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="contactPerson">담당자명</Label>
+              <Label htmlFor="name">파트너명 *</Label>
               <Input
-                id="contactPerson"
-                value={formData.contactPerson}
-                onChange={(e) => handleInputChange('contactPerson', e.target.value)}
-                placeholder="담당자명을 입력하세요"
+                id="name"
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
+                placeholder="파트너명을 입력하세요"
+                required
               />
             </div>
-            
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="contactPerson">담당자명</Label>
+                <Input
+                  id="contactPerson"
+                  value={formData.contactPerson}
+                  onChange={(e) => handleInputChange('contactPerson', e.target.value)}
+                  placeholder="담당자명을 입력하세요"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="contactPhone">담당자 연락처</Label>
+                <Input
+                  id="contactPhone"
+                  value={formData.contactPhone}
+                  onChange={(e) => handleInputChange('contactPhone', e.target.value)}
+                  placeholder="담당자 연락처를 입력하세요"
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <Label htmlFor="contactPhone">담당자 연락처</Label>
+              <Label htmlFor="contactEmail">담당자 이메일</Label>
               <Input
-                id="contactPhone"
-                value={formData.contactPhone}
-                onChange={(e) => handleInputChange('contactPhone', e.target.value)}
-                placeholder="담당자 연락처를 입력하세요"
+                id="contactEmail"
+                type="email"
+                value={formData.contactEmail}
+                onChange={(e) => handleInputChange('contactEmail', e.target.value)}
+                placeholder="담당자 이메일을 입력하세요"
               />
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="contactEmail">담당자 이메일</Label>
-            <Input
-              id="contactEmail"
-              type="email"
-              value={formData.contactEmail}
-              onChange={(e) => handleInputChange('contactEmail', e.target.value)}
-              placeholder="담당자 이메일을 입력하세요"
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">설명</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => handleInputChange('description', e.target.value)}
+                placeholder="파트너에 대한 설명을 입력하세요"
+                rows={3}
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description">설명</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              placeholder="파트너에 대한 설명을 입력하세요"
-              rows={3}
-            />
+            <div className="flex justify-end space-x-4">
+              <Button type="button" variant="outline" onClick={onCancel}>
+                취소
+              </Button>
+              <Button type="button" onClick={handleSubmit}>
+                등록
+              </Button>
+            </div>
           </div>
-
-          <div className="flex justify-end space-x-4">
-            <Button type="button" variant="outline" onClick={onCancel}>
-              취소
-            </Button>
-            <Button type="submit">
-              등록
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
 
