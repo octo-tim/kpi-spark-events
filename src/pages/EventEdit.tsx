@@ -76,15 +76,38 @@ const EventEdit = () => {
           customerReaction: '',
           eventSummary: ''
         })
+        
+        // 실제 총비용을 기반으로 비용내역 생성
+        const totalCost = Number(event.total_cost) || 0
+        if (totalCost > 0) {
+          // 이벤트 타입에 따른 기본 비용 항목 설정
+          let defaultCostItems = []
+          if (event.type === '라이브커머스') {
+            defaultCostItems = [
+              { item: '라이브 스튜디오 대여', amount: String(Math.round(totalCost * 0.3)), note: '스튜디오 임대비용' },
+              { item: '제품 배송비', amount: String(Math.round(totalCost * 0.1)), note: '샘플 제품 배송' },
+              { item: '광고비', amount: String(Math.round(totalCost * 0.6)), note: '온라인 광고비' }
+            ]
+          } else if (event.type === '베이비페어') {
+            defaultCostItems = [
+              { item: '부스 임대료', amount: String(Math.round(totalCost * 0.4)), note: '전시 부스 임대' },
+              { item: '제품 운송비', amount: String(Math.round(totalCost * 0.2)), note: '전시용 제품 운송' },
+              { item: '홍보비', amount: String(Math.round(totalCost * 0.4)), note: '박람회 홍보 및 마케팅' }
+            ]
+          } else {
+            defaultCostItems = [
+              { item: '이벤트 운영비', amount: String(totalCost), note: '전체 이벤트 운영비용' }
+            ]
+          }
+          setCostItems(defaultCostItems)
+        }
       }
     }
   }, [events, id])
 
-  // 비용내역 관리
+  // 비용내역 관리 - 실제 데이터 기반으로 초기화
   const [costItems, setCostItems] = useState([
-    { item: '라이브 스튜디오 대여', amount: '500000', note: '2일간 대여비용' },
-    { item: '제품 배송비', amount: '150000', note: '샘플 제품 배송' },
-    { item: '광고비', amount: '800000', note: '네이버 쇼핑 광고' }
+    { item: '', amount: '', note: '' }
   ])
 
   // 계획 달성 현황
