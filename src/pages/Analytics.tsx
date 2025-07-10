@@ -19,6 +19,9 @@ import {
 
 const Analytics = () => {
   const [periodFilter, setPeriodFilter] = useState('monthly')
+  const [selectedYear, setSelectedYear] = useState('2024')
+  const [selectedMonth, setSelectedMonth] = useState('07')
+  const [selectedQuarter, setSelectedQuarter] = useState('3')
   const [startYear, setStartYear] = useState('2024')
   const [startMonth, setStartMonth] = useState('01')
   const [endYear, setEndYear] = useState('2024')
@@ -33,33 +36,42 @@ const Analytics = () => {
 
   const handlePeriodChange = (value: string) => {
     setPeriodFilter(value)
-    if (value === 'custom') {
+    if (value === 'monthly') {
+      filterAnalyticsData(value, selectedYear, selectedMonth, '')
+    } else if (value === 'quarterly') {
+      filterAnalyticsData(value, selectedYear, '', selectedQuarter)
+    } else if (value === 'custom') {
       const startDateStr = `${startYear}-${startMonth}-01`
       const endDateStr = `${endYear}-${endMonth}-${new Date(parseInt(endYear), parseInt(endMonth), 0).getDate().toString().padStart(2, '0')}`
-      filterAnalyticsData(value, startDateStr, endDateStr)
+      filterAnalyticsData(value, startDateStr, endDateStr, '')
     } else {
-      filterAnalyticsData(value, '', '')
+      filterAnalyticsData(value, '', '', '')
     }
   }
 
-  const filterAnalyticsData = (period: string, start: string, end: string) => {
-    console.log('Analytics filtering:', { period, start, end })
+  const filterAnalyticsData = (period: string, param1: string, param2: string, param3: string) => {
+    console.log('Analytics filtering:', { period, param1, param2, param3 })
     
     if (period === 'monthly') {
+      const year = param1
+      const month = param2
       setFilteredStats({
-        message: '월간 분석 데이터로 필터링됨',
-        totalEvents: 12,
-        totalContracts: 280
+        message: `${year}년 ${parseInt(month)}월 분석 데이터로 필터링됨`,
+        totalEvents: 8,
+        totalContracts: 245
       })
     } else if (period === 'quarterly') {
+      const year = param1
+      const quarter = param3
+      const quarterNames = ['', '1분기', '2분기', '3분기', '4분기']
       setFilteredStats({
-        message: '분기별 분석 데이터로 필터링됨',
-        totalEvents: 36,
-        totalContracts: 420
+        message: `${year}년 ${quarterNames[parseInt(quarter)]} 분석 데이터로 필터링됨`,
+        totalEvents: 24,
+        totalContracts: 380
       })
-    } else if (period === 'custom' && start && end) {
+    } else if (period === 'custom' && param1 && param2) {
       setFilteredStats({
-        message: `${start}부터 ${end}까지 분석 데이터로 필터링됨`,
+        message: `${param1}부터 ${param2}까지 분석 데이터로 필터링됨`,
         totalEvents: 18,
         totalContracts: 320
       })
@@ -69,25 +81,30 @@ const Analytics = () => {
   }
 
   React.useEffect(() => {
-    if (periodFilter === 'custom') {
+    if (periodFilter === 'monthly') {
+      filterAnalyticsData(periodFilter, selectedYear, selectedMonth, '')
+    } else if (periodFilter === 'quarterly') {
+      filterAnalyticsData(periodFilter, selectedYear, '', selectedQuarter)
+    } else if (periodFilter === 'custom') {
       const startDateStr = `${startYear}-${startMonth}-01`
       const endDateStr = `${endYear}-${endMonth}-${new Date(parseInt(endYear), parseInt(endMonth), 0).getDate().toString().padStart(2, '0')}`
-      filterAnalyticsData(periodFilter, startDateStr, endDateStr)
+      filterAnalyticsData(periodFilter, startDateStr, endDateStr, '')
     }
-  }, [startYear, startMonth, endYear, endMonth, periodFilter])
+  }, [selectedYear, selectedMonth, selectedQuarter, startYear, startMonth, endYear, endMonth, periodFilter])
 
   const handleDownload = () => {
     console.log('리포트 다운로드 시작')
     
-    const customPeriod = periodFilter === 'custom' ? 
-      `${startYear}년 ${startMonth}월 ~ ${endYear}년 ${endMonth}월` : ''
+    const customPeriod = periodFilter === 'monthly' ? `${selectedYear}년 ${parseInt(selectedMonth)}월` :
+                      periodFilter === 'quarterly' ? `${selectedYear}년 ${selectedQuarter}분기` :
+                      periodFilter === 'custom' ? `${startYear}년 ${startMonth}월 ~ ${endYear}년 ${endMonth}월` : ''
     
     // 실제 PDF 생성 로직
     const reportData = `
 통계 분석 리포트
 생성일: ${new Date().toLocaleDateString()}
 조회기간: ${periodFilter}
-${periodFilter === 'custom' ? `기간: ${customPeriod}` : ''}
+${periodFilter !== 'monthly' && periodFilter !== 'quarterly' && periodFilter === 'custom' ? `기간: ${customPeriod}` : periodFilter !== 'monthly' && periodFilter !== 'quarterly' ? '' : `조회기간: ${customPeriod}`}
 
 ${filteredStats ? `필터링된 데이터:
 ${filteredStats.message}
@@ -424,6 +441,63 @@ ${filteredStats.message}
               <SelectItem value="custom">기간설정</SelectItem>
             </SelectContent>
           </Select>
+          {periodFilter === 'monthly' && (
+            <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1 bg-muted/30 p-2 rounded-lg">
+                <Select value={selectedYear} onValueChange={setSelectedYear}>
+                  <SelectTrigger className="w-20 border-none bg-background">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2023">2023</SelectItem>
+                    <SelectItem value="2024">2024</SelectItem>
+                    <SelectItem value="2025">2025</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-sm font-medium">년</span>
+                <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                  <SelectTrigger className="w-16 border-none bg-background">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({length: 12}, (_, i) => (
+                      <SelectItem key={i+1} value={(i+1).toString().padStart(2, '0')}>
+                        {i+1}월
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+          {periodFilter === 'quarterly' && (
+            <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1 bg-muted/30 p-2 rounded-lg">
+                <Select value={selectedYear} onValueChange={setSelectedYear}>
+                  <SelectTrigger className="w-20 border-none bg-background">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2023">2023</SelectItem>
+                    <SelectItem value="2024">2024</SelectItem>
+                    <SelectItem value="2025">2025</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-sm font-medium">년</span>
+                <Select value={selectedQuarter} onValueChange={setSelectedQuarter}>
+                  <SelectTrigger className="w-20 border-none bg-background">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1분기</SelectItem>
+                    <SelectItem value="2">2분기</SelectItem>
+                    <SelectItem value="3">3분기</SelectItem>
+                    <SelectItem value="4">4분기</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
           {periodFilter === 'custom' && (
             <div className="flex items-center space-x-2">
               <div className="flex items-center space-x-1 bg-muted/30 p-2 rounded-lg">
