@@ -128,70 +128,43 @@ ${filteredStats.message}
     alert('리포트가 다운로드되었습니다!')
   }
   
-  // 샘플 데이터 - 추후 Supabase 연동 시 실제 데이터로 교체
-  const channelStats = [
-    {
-      channel: '라이브커머스',
-      totalEvents: 12,
-      completedEvents: 8,
-      totalContracts: 145,
-      totalEstimates: 320,
-      totalSqm: 4200,
-      avgContractRate: 45.3,
+  // 실제 데이터 기반 통계 계산
+  const getChannelStats = (events: Event[]) => {
+    const channelMap: { [key: string]: Event[] } = {}
+    
+    events.forEach(event => {
+      if (!channelMap[event.type]) {
+        channelMap[event.type] = []
+      }
+      channelMap[event.type].push(event)
+    })
+    
+    return Object.entries(channelMap).map(([channel, channelEvents]) => ({
+      channel,
+      totalEvents: channelEvents.length,
+      completedEvents: channelEvents.filter(e => e.status === '완료').length,
+      totalContracts: channelEvents.reduce((sum, e) => sum + e.actual_contracts, 0),
+      totalEstimates: channelEvents.reduce((sum, e) => sum + e.actual_estimates, 0),
+      totalSqm: channelEvents.reduce((sum, e) => sum + e.actual_sqm, 0),
+      avgContractRate: channelEvents.length > 0 
+        ? channelEvents.reduce((sum, e) => sum + (e.actual_contracts / e.target_contracts * 100), 0) / channelEvents.length 
+        : 0,
       trend: 'up',
-      trendValue: 12
-    },
-    {
-      channel: '베이비페어',
-      totalEvents: 8,
-      completedEvents: 6,
-      totalContracts: 89,
-      totalEstimates: 180,
-      totalSqm: 3100,
-      avgContractRate: 49.4,
-      trend: 'up',
-      trendValue: 8
-    },
-    {
-      channel: '입주박람회',
-      totalEvents: 6,
-      completedEvents: 4,
-      totalContracts: 67,
-      totalEstimates: 150,
-      totalSqm: 2800,
-      avgContractRate: 44.7,
-      trend: 'down',
-      trendValue: -3
-    },
-    {
-      channel: '인플루언서공구',
-      totalEvents: 10,
-      completedEvents: 7,
-      totalContracts: 34,
-      totalEstimates: 90,
-      totalSqm: 1500,
-      avgContractRate: 37.8,
-      trend: 'up',
-      trendValue: 15
-    }
-  ]
+      trendValue: 0
+    }))
+  }
 
-  const periodStats = [
-    { period: '2023년 4분기', contracts: 89, estimates: 201, sqm: 2850 },
-    { period: '2024년 1분기', contracts: 145, estimates: 275, sqm: 3920 },
-    { period: '2024년 2분기', contracts: 112, estimates: 245, sqm: 3120 },
-    { period: '2024년 3분기', contracts: 178, estimates: 312, sqm: 4680 }
-  ]
+  const channelStats = getChannelStats(filteredStats?.filteredEventData || events)
 
-  const topPerformers = [
-    { partner: '네이버 쇼핑라이브', contracts: 45, rate: 89.2 },
-    { partner: '베이비페어 조직위', contracts: 38, rate: 87.5 },
-    { partner: '분당신도시개발', contracts: 32, rate: 85.1 },
-    { partner: '카카오 쇼핑라이브', contracts: 29, rate: 82.3 },
-    { partner: '롯데 베이비페어', contracts: 25, rate: 78.9 }
-  ]
-
-  // 샘플 데이터 - 추후 Supabase 연동 시 실제 데이터로 교체
+  // 실제 데이터 기반 상위 성과 이벤트
+  const topPerformingEvents = (filteredStats?.filteredEventData || events)
+    .sort((a, b) => b.actual_sqm - a.actual_sqm)
+    .slice(0, 4)
+    .map(event => ({
+      name: event.title,
+      sqm: event.actual_sqm,
+      change: 0 // 변화율은 이전 기간 데이터가 필요하므로 임시로 0
+    }))
 
   // 이벤트 테이블 필터링 함수
   const filterEventTable = async (filter: string, start: string, end: string) => {
@@ -616,37 +589,40 @@ ${filteredStats.message}
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* 기간별 성과 */}
+        {/* 채널별 실적 현황 */}
         <Card>
           <CardHeader>
-            <CardTitle>분기별 성과 추이</CardTitle>
+            <CardTitle>채널별 실적 현황</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {periodStats.map((period, index) => {
-                const maxContracts = Math.max(...periodStats.map(p => p.contracts))
-                const percentage = (period.contracts / maxContracts) * 100
-                return (
-                  <div key={index} className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="font-medium">{period.period}</span>
-                      <span className="text-sm text-muted-foreground">
-                        {period.contracts}건
-                      </span>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div 
-                        className="h-2 rounded-full bg-gradient-primary transition-all duration-500"
-                        style={{ width: `${percentage}%` }}
-                      />
-                    </div>
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>견적: {period.estimates}건</span>
-                      <span>장수: {period.sqm.toLocaleString()}장</span>
-                    </div>
+              {channelStats.map((channel, index) => (
+                <div key={index} className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium">{channel.channel}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {channel.totalContracts}건
+                    </span>
                   </div>
-                )
-              })}
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div 
+                      className="h-2 rounded-full bg-gradient-primary transition-all duration-500"
+                      style={{ 
+                        width: `${channelStats.length > 0 ? (channel.totalContracts / Math.max(...channelStats.map(c => c.totalContracts))) * 100 : 0}%` 
+                      }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>견적: {channel.totalEstimates}건</span>
+                    <span>장수: {channel.totalSqm.toLocaleString()}장</span>
+                  </div>
+                </div>
+              ))}
+              {channelStats.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  데이터가 없습니다.
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -658,12 +634,7 @@ ${filteredStats.message}
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {[
-                { name: '서울 베이비&키즈 페어 2024', sqm: 2850, change: 18 },
-                { name: '분당 신도시 입주박람회', sqm: 1200, change: -5 },
-                { name: '신혼가구 타겟 라이브 쇼핑', sqm: 960, change: 12 },
-                { name: '인플루언서 협업 프로모션', sqm: 750, change: 8 }
-              ].map((event, index) => (
+              {topPerformingEvents.map((event, index) => (
                 <div key={event.name} className="flex items-center justify-between p-3 border border-border rounded-lg">
                   <div className="flex items-center space-x-3">
                     <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
@@ -673,12 +644,14 @@ ${filteredStats.message}
                   </div>
                   <div className="text-right">
                     <p className="font-semibold">{event.sqm.toLocaleString()}장</p>
-                    <p className={`text-xs ${event.change >= 0 ? 'text-success' : 'text-danger'}`}>
-                      {event.change >= 0 ? '+' : ''}{event.change}%
-                    </p>
                   </div>
                 </div>
               ))}
+              {topPerformingEvents.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  데이터가 없습니다.
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
