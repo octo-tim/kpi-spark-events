@@ -99,6 +99,7 @@ const Analytics = () => {
 
       // 채널 통계 계산
       const stats = await getChannelStats(filteredEventData, selectedYear, selectedMonth)
+      console.log('channelStats 설정됨:', stats)
       setChannelStats(stats)
       
     } catch (error) {
@@ -160,8 +161,15 @@ ${filteredStats.message}
 
   // 실제 데이터 기반 통계 계산
   const getChannelStats = async (currentEvents: Event[], currentYear: string, currentMonth: string) => {
+    console.log('getChannelStats 호출됨:', { 
+      currentEventsLength: currentEvents.length, 
+      currentYear, 
+      currentMonth 
+    })
+    
     // 데이터가 없으면 빈 배열 반환
     if (currentEvents.length === 0) {
+      console.log('이벤트가 없어서 빈 배열 반환')
       return []
     }
     
