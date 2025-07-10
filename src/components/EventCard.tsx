@@ -123,30 +123,30 @@ const EventCard = ({ event, className }: EventCardProps) => {
           {event.partner}
         </div>
 
-        <div className="grid grid-cols-4 gap-4 pt-2">
+        <div className="grid grid-cols-2 gap-3 pt-2">
           <div className="text-center">
-            <div className="text-xs text-muted-foreground">계약건수</div>
-            <div className="font-semibold">
+            <div className="text-xs text-muted-foreground mb-1">계약건수</div>
+            <div className="font-semibold text-sm">
               {event.actualContracts || 0}/{event.targetContracts}
             </div>
           </div>
           <div className="text-center">
-            <div className="text-xs text-muted-foreground">견적건수</div>
-            <div className="font-semibold">
+            <div className="text-xs text-muted-foreground mb-1">견적건수</div>
+            <div className="font-semibold text-sm">
               {event.actualEstimates || 0}/{event.targetEstimates}
             </div>
           </div>
           <div className="text-center">
-            <div className="text-xs text-muted-foreground">계약장수</div>
-            <div className="font-semibold">
-              {event.actualSqm || 0}/{event.targetSqm}
+            <div className="text-xs text-muted-foreground mb-1">계약장수</div>
+            <div className="font-semibold text-sm">
+              {(event.actualSqm || 0).toLocaleString()}/{event.targetSqm.toLocaleString()}
             </div>
           </div>
           {event.costPerSqm && (
             <div className="text-center">
-              <div className="text-xs text-muted-foreground">장당비용</div>
-              <div className="font-semibold">
-                {event.costPerSqm.toLocaleString()}원/장
+              <div className="text-xs text-muted-foreground mb-1">장당비용</div>
+              <div className="font-semibold text-sm">
+                {event.costPerSqm.toLocaleString()}원
               </div>
             </div>
           )}

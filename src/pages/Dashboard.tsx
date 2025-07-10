@@ -545,7 +545,7 @@ const Dashboard = () => {
       <Card key={`events-${filterKey}`} className="animate-fade-in" style={{ animationDelay: '0.9s' }}>
         <CardHeader>
           <CardTitle className="flex items-center">
-            최근 이벤트
+            이벤트 목록
             {filteredData && (
               <span className="ml-2 text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
                 {displayData.events.length}건 표시
