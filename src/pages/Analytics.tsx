@@ -62,8 +62,8 @@ const Analytics = () => {
       const month = param2
       setFilteredStats({
         message: `${year}년 ${parseInt(month)}월 분석 데이터로 필터링됨`,
-        totalEvents: 8,
-        totalContracts: 245
+        totalEvents: Math.floor(Math.random() * 15) + 5, // 5-20 랜덤
+        totalContracts: Math.floor(Math.random() * 200) + 100 // 100-300 랜덤
       })
     } else if (period === 'quarterly') {
       const year = param1
@@ -71,14 +71,14 @@ const Analytics = () => {
       const quarterNames = ['', '1분기', '2분기', '3분기', '4분기']
       setFilteredStats({
         message: `${year}년 ${quarterNames[parseInt(quarter)]} 분석 데이터로 필터링됨`,
-        totalEvents: 24,
-        totalContracts: 380
+        totalEvents: Math.floor(Math.random() * 30) + 20, // 20-50 랜덤
+        totalContracts: Math.floor(Math.random() * 300) + 200 // 200-500 랜덤
       })
     } else if (period === 'custom' && param1 && param2) {
       setFilteredStats({
         message: `${param1}부터 ${param2}까지 분석 데이터로 필터링됨`,
-        totalEvents: 18,
-        totalContracts: 320
+        totalEvents: Math.floor(Math.random() * 25) + 10, // 10-35 랜덤
+        totalContracts: Math.floor(Math.random() * 250) + 150 // 150-400 랜덤
       })
     } else if (period !== 'custom') {
       setFilteredStats(null)
@@ -86,10 +86,8 @@ const Analytics = () => {
   }
 
   React.useEffect(() => {
-    // 초기 로드시에만 자동 실행, 이후에는 검색 버튼으로만 실행
-    if (periodFilter === 'monthly') {
-      filterAnalyticsData(periodFilter, selectedYear, selectedMonth, '')
-    }
+    // 초기 로드시 월간 데이터 자동 로드
+    handleSearch()
   }, [])
 
   const handleDownload = () => {
