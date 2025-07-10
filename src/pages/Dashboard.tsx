@@ -20,39 +20,52 @@ const Dashboard = () => {
   }
 
   const filterData = (period: string, start: string, end: string) => {
+    console.log('=== 필터링 시작 ===')
     console.log('Filtering data:', { period, start, end })
     
     // 기간에 따른 데이터 필터링 시뮬레이션
     if (period === 'monthly' && start) {
+      console.log('월간 필터링 조건 충족')
       const monthData = start.split('-')
       const year = monthData[0]
       const month = monthData[1]
-      setFilteredData({ 
+      const newFilteredData = { 
         message: `${year}년 ${parseInt(month)}월 데이터로 필터링됨`,
         contracts: Math.round(kpiData.totalContracts.current * 0.8)
-      })
+      }
+      console.log('월간 필터링된 데이터:', newFilteredData)
+      setFilteredData(newFilteredData)
     } else if (period === 'quarterly' && start) {
+      console.log('분기별 필터링 조건 충족')
       const quarterMap = {
         '2024-Q1': '2024년 1분기',
         '2024-Q2': '2024년 2분기', 
         '2024-Q3': '2024년 3분기',
         '2024-Q4': '2024년 4분기'
       }
-      setFilteredData({ 
+      const newFilteredData = { 
         message: `${quarterMap[start as keyof typeof quarterMap]} 데이터로 필터링됨`,
         contracts: Math.round(kpiData.totalContracts.current * 1.2)
-      })
+      }
+      console.log('분기별 필터링된 데이터:', newFilteredData)
+      setFilteredData(newFilteredData)
     } else if (period === 'custom' && start && end) {
-      setFilteredData({ 
+      console.log('사용자 정의 필터링 조건 충족')
+      const newFilteredData = { 
         message: `${start}부터 ${end}까지 데이터로 필터링됨`,
         contracts: Math.round(kpiData.totalContracts.current * 0.9)
-      })
+      }
+      console.log('사용자 정의 필터링된 데이터:', newFilteredData)
+      setFilteredData(newFilteredData)
     } else {
+      console.log('필터링 조건 불충족, 기존 데이터 유지')
       // 조건에 맞지 않는 경우에만 null로 설정
       if (period === 'custom' && (!start || !end)) {
+        console.log('사용자 정의 기간이지만 날짜가 불완전함 - 데이터 초기화')
         setFilteredData(null)
       }
     }
+    console.log('=== 필터링 완료 ===')
   }
 
   // 날짜 변경시 자동 필터링
