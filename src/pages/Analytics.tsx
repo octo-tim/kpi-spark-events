@@ -167,7 +167,17 @@ ${filteredStats.message}
       const nextMonth = month === 12 ? 1 : month + 1
       const nextYear = month === 12 ? year + 1 : year
       
-      return await fetchEventsByMonth(nextYear.toString(), nextMonth.toString().padStart(2, '0'))
+      console.log('다음달 데이터 조회:', { 
+        currentYear, 
+        currentMonth, 
+        nextYear, 
+        nextMonth: nextMonth.toString().padStart(2, '0') 
+      })
+      
+      const nextMonthData = await fetchEventsByMonth(nextYear.toString(), nextMonth.toString().padStart(2, '0'))
+      console.log('다음달 데이터 결과:', nextMonthData.length, '개 이벤트')
+      
+      return nextMonthData
     } catch (error) {
       console.error('다음달 데이터 조회 오류:', error)
       return []
@@ -236,12 +246,19 @@ ${filteredStats.message}
       
       // 다음달 실제 목표 확인 (다음달에 이벤트가 있을 때만 목표 표시)
       const nextChannelEvents = nextChannelMap[channel] || []
+      console.log(`[${channel}] 다음달 이벤트:`, nextChannelEvents.length, '개')
+      
       const nextMonthTargetContracts = nextChannelEvents.length > 0 
         ? nextChannelEvents.reduce((sum, e) => sum + e.target_contracts, 0) 
         : 0
       const nextMonthTargetEstimates = nextChannelEvents.length > 0 
         ? nextChannelEvents.reduce((sum, e) => sum + e.target_estimates, 0) 
         : 0
+        
+      console.log(`[${channel}] 익월 목표:`, { 
+        nextMonthTargetContracts, 
+        nextMonthTargetEstimates 
+      })
 
       return {
         channel,
