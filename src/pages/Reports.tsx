@@ -12,15 +12,13 @@ const Reports = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('')
   const [filteredEvents, setFilteredEvents] = useState(events)
 
-  // 기본 기간 설정
+  // 기본 기간 설정 (한 번만 실행)
   useEffect(() => {
-    if (!selectedPeriod) {
-      const currentDate = new Date()
-      const currentYear = currentDate.getFullYear()
-      const currentMonth = currentDate.getMonth() + 1
-      setSelectedPeriod(`${currentYear}-${currentMonth.toString().padStart(2, '0')}`)
-    }
-  }, [selectedPeriod])
+    const currentDate = new Date()
+    const currentYear = currentDate.getFullYear()
+    const currentMonth = currentDate.getMonth() + 1
+    setSelectedPeriod(`${currentYear}-${currentMonth.toString().padStart(2, '0')}`)
+  }, []) // 빈 배열로 변경하여 한 번만 실행
 
   // 기간 변경 시 이벤트 필터링
   useEffect(() => {
@@ -56,7 +54,7 @@ const Reports = () => {
     }
 
     filterEvents()
-  }, [periodType, selectedPeriod, fetchEventsByMonth, fetchEventsByQuarter, fetchEventsByPeriod])
+  }, [periodType, selectedPeriod]) // 함수들을 의존성에서 제거
 
   const getReportTitle = () => {
     if (periodType === 'month') {
