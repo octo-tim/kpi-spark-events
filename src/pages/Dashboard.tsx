@@ -220,8 +220,13 @@ const Dashboard = () => {
           )}
           
           <button 
-            onClick={() => filterData(periodFilter, startDate, endDate)}
+            onClick={() => {
+              if (periodFilter === 'custom' && startDate && endDate) {
+                filterData(periodFilter, startDate, endDate)
+              }
+            }}
             className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+            disabled={periodFilter === 'custom' && (!startDate || !endDate)}
           >
             검색
           </button>
