@@ -20,60 +20,36 @@ const EventList = () => {
   const [filterType, setFilterType] = useState<EventType | 'all'>('all')
   const [filterStatus, setFilterStatus] = useState<EventStatus | 'all'>('all')
   const [periodType, setPeriodType] = useState<'month' | 'quarter' | 'range'>('month')
-  const [selectedPeriod, setSelectedPeriod] = useState('')
+  const [selectedPeriod, setSelectedPeriod] = useState('2024-07')
   
-  const { events, loading, fetchEventsByMonth, fetchEventsByQuarter, fetchEventsByPeriod } = useEvents()
+  const { events, loading } = useEvents()
 
-  // 기간 선택 시 기본값 설정 (periodType이 변경될 때만)
-  useEffect(() => {
-    if (periodType === 'month') {
-      // 실제 데이터가 있는 2024년 7월로 설정
-      setSelectedPeriod('2024-07')
-    } else if (periodType === 'quarter') {
-      // 2024년 3분기로 설정
-      setSelectedPeriod('2024-Q3')
-    } else if (periodType === 'range') {
-      // 2024년 전체로 설정
-      setSelectedPeriod('2024')
-    }
-  }, [periodType]) // selectedPeriod를 의존성에서 제거
-
-  // 기간별 필터링된 이벤트 목록 계산 (메모이제이션)
-  const filteredByPeriodEvents = useMemo(() => {
+  // 표시할 이벤트 목록 (기간 필터링 단순화)
+  const eventsToShow = useMemo(() => {
     if (!selectedPeriod) return events
     
     return events.filter(event => {
-      const eventStartDate = new Date(event.start_date)
+      const eventDate = new Date(event.start_date)
+      const eventYear = eventDate.getFullYear()
+      const eventMonth = eventDate.getMonth() + 1
       
       if (periodType === 'month') {
         const [year, month] = selectedPeriod.split('-')
-        return eventStartDate.getFullYear() === parseInt(year) && 
-               (eventStartDate.getMonth() + 1) === parseInt(month)
+        return eventYear === parseInt(year) && eventMonth === parseInt(month)
       } else if (periodType === 'quarter') {
         const [year, quarter] = selectedPeriod.split('-Q')
-        const eventYear = eventStartDate.getFullYear()
-        const eventQuarter = Math.ceil((eventStartDate.getMonth() + 1) / 3)
+        const eventQuarter = Math.ceil(eventMonth / 3)
         return eventYear === parseInt(year) && eventQuarter === parseInt(quarter)
       } else if (periodType === 'range') {
-        if (selectedPeriod === '2025') {
-          return eventStartDate.getFullYear() === 2025
-        } else if (selectedPeriod === '2024') {
-          return eventStartDate.getFullYear() === 2024
-        } else if (selectedPeriod === '2024-H2') {
-          return eventStartDate.getFullYear() === 2024 && eventStartDate.getMonth() >= 6
-        } else if (selectedPeriod === '2024-H1') {
-          return eventStartDate.getFullYear() === 2024 && eventStartDate.getMonth() < 6
-        } else if (selectedPeriod === '2023') {
-          return eventStartDate.getFullYear() === 2023
-        }
+        if (selectedPeriod === '2024') return eventYear === 2024
+        if (selectedPeriod === '2025') return eventYear === 2025
+        if (selectedPeriod === '2023') return eventYear === 2023
+        return true
       }
       
       return true
     })
   }, [events, selectedPeriod, periodType])
-
-  // 표시할 이벤트 목록
-  const eventsToShow = filteredByPeriodEvents
 
   // 이벤트 데이터를 EventData 형태로 변환
   const convertedEvents: EventData[] = eventsToShow.map(event => ({
