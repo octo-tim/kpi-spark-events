@@ -11,6 +11,7 @@ import { ArrowLeft, Save, FileText, Check, ChevronsUpDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useEvents } from '@/hooks/useEvents'
 import { useToast } from '@/hooks/use-toast'
+import { supabase } from '@/integrations/supabase/client'
 
 const ReportCreate = () => {
   const navigate = useNavigate()
@@ -69,7 +70,32 @@ const ReportCreate = () => {
     }
 
     try {
-      // 여기에 보고서 업데이트 로직 추가
+      console.log('보고서 업데이트 시작:', { selectedEventId, formData })
+      
+      // 이벤트 데이터 업데이트
+      const updateData = {
+        actual_contracts: parseInt(formData.actualContracts) || 0,
+        actual_estimates: parseInt(formData.actualEstimates) || 0,
+        actual_sqm: parseInt(formData.actualSqm) || 0,
+        efficiency: parseFloat(formData.efficiency) || 0,
+        customer_feedback: formData.customerFeedback,
+        event_review: formData.eventReview,
+        future_improvements: formData.futureImprovements
+      }
+
+      const { data, error } = await supabase
+        .from('events')
+        .update(updateData)
+        .eq('id', selectedEventId)
+        .select()
+
+      if (error) {
+        console.error('업데이트 오류:', error)
+        throw error
+      }
+
+      console.log('업데이트 성공:', data)
+      
       toast({
         title: "성공",
         description: "보고서가 성공적으로 업데이트되었습니다.",
@@ -77,6 +103,7 @@ const ReportCreate = () => {
       
       navigate('/reports')
     } catch (error) {
+      console.error('보고서 업데이트 오류:', error)
       toast({
         title: "오류",
         description: "보고서 업데이트에 실패했습니다.",

@@ -10,7 +10,7 @@ import { useEvents } from '@/hooks/useEvents'
 
 const Dashboard = () => {
   const { toast } = useToast()
-  const { events, loading, fetchEventsByMonth, fetchEventsByQuarter } = useEvents()
+  const { events, loading, fetchEventsByMonth, fetchEventsByQuarter, fetchEvents } = useEvents()
   const [periodFilter, setPeriodFilter] = useState('monthly')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')

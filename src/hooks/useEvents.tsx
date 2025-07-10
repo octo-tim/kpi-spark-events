@@ -300,6 +300,24 @@ export const useEvents = () => {
   // 컴포넌트 마운트 시 이벤트 목록 로드
   useEffect(() => {
     fetchEvents()
+
+    // 실시간 구독 설정
+    const subscription = supabase
+      .channel('events_changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'events' }, 
+        (payload) => {
+          console.log('이벤트 데이터 변경 감지:', payload)
+          // 데이터 변경 시 자동으로 새로고침
+          fetchEvents()
+        }
+      )
+      .subscribe()
+
+    // 컴포넌트 언마운트 시 구독 해제
+    return () => {
+      subscription.unsubscribe()
+    }
   }, [])
 
   return {
