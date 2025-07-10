@@ -18,6 +18,7 @@ import ReportCreate from "./pages/ReportCreate";
 import EventManagersManagement from "./pages/EventManagersManagement";
 import PartnersManagement from "./pages/PartnersManagement";
 import LocationsManagement from "./pages/LocationsManagement";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +47,7 @@ const App = () => (
                     <Route path="/management/managers" element={<EventManagersManagement />} />
                     <Route path="/management/partners" element={<PartnersManagement />} />
                     <Route path="/management/locations" element={<LocationsManagement />} />
+                    <Route path="/settings" element={<Settings />} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>

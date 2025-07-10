@@ -34,9 +34,7 @@ const Layout = ({ children }: LayoutProps) => {
     { name: '보고서 작성', href: '/reports/create', icon: FileText },
     { name: '통계 분석', href: '/analytics', icon: BarChart3 },
     { name: '보고서', href: '/reports', icon: FileText },
-    { name: '담당자 관리', href: '/management/managers', icon: Users },
-    { name: '파트너 관리', href: '/management/partners', icon: Building2 },
-    { name: '장소 관리', href: '/management/locations', icon: MapPin },
+    { name: '설정', href: '/settings', icon: Settings },
   ]
 
   const handleSignOut = async () => {
