@@ -5,8 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ArrowLeft, Save, FileText } from 'lucide-react'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
+import { ArrowLeft, Save, FileText, Check, ChevronsUpDown } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { useEvents } from '@/hooks/useEvents'
 import { useToast } from '@/hooks/use-toast'
 
@@ -17,6 +19,7 @@ const ReportCreate = () => {
   
   const [selectedEventId, setSelectedEventId] = useState('')
   const [selectedEvent, setSelectedEvent] = useState<any>(null)
+  const [searchOpen, setSearchOpen] = useState(false)
   const [formData, setFormData] = useState({
     actualContracts: '',
     actualEstimates: '',
@@ -117,19 +120,59 @@ const ReportCreate = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <Label htmlFor="eventSelect">보고서를 작성할 이벤트 선택</Label>
-              <Select value={selectedEventId} onValueChange={setSelectedEventId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="이벤트를 선택하세요" />
-                </SelectTrigger>
-                <SelectContent>
-                  {events.map((event) => (
-                    <SelectItem key={event.id} value={event.id}>
-                      {event.title} ({event.type})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="eventSelect">보고서를 작성할 이벤트 검색</Label>
+              <Popover open={searchOpen} onOpenChange={setSearchOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={searchOpen}
+                    className="w-full justify-between"
+                  >
+                    {selectedEvent
+                      ? `${selectedEvent.title} (${selectedEvent.type})`
+                      : "이벤트를 검색하고 선택하세요..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0 bg-popover border shadow-md z-50" side="bottom" align="start">
+                  <Command className="w-full">
+                    <CommandInput 
+                      placeholder="이벤트명 또는 파트너명으로 검색..." 
+                      className="h-9"
+                    />
+                    <CommandList className="max-h-[200px] overflow-y-auto">
+                      <CommandEmpty>검색 결과가 없습니다.</CommandEmpty>
+                      <CommandGroup>
+                        {events.map((event) => (
+                          <CommandItem
+                            key={event.id}
+                            value={`${event.title} ${event.partner || ''} ${event.type}`}
+                            onSelect={() => {
+                              setSelectedEventId(event.id)
+                              setSearchOpen(false)
+                            }}
+                            className="cursor-pointer hover:bg-accent"
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedEventId === event.id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            <div className="flex flex-col">
+                              <span className="font-medium">{event.title}</span>
+                              <span className="text-sm text-muted-foreground">
+                                {event.type} • {event.partner || '파트너 미지정'} • {formatDate(event.start_date)}
+                              </span>
+                            </div>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
           </CardContent>
         </Card>
