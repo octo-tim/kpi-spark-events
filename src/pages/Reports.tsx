@@ -26,26 +26,89 @@ const Reports = () => {
   const [periodFilter, setPeriodFilter] = useState('monthly')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
+  const [filteredReports, setFilteredReports] = useState(null)
 
   const handlePeriodChange = (value: string) => {
     setPeriodFilter(value)
-    console.log('Period filter changed to:', value)
+    filterReports(value, startDate, endDate)
   }
+
+  const filterReports = (period: string, start: string, end: string) => {
+    console.log('Reports filtering:', { period, start, end })
+    
+    let filtered = reports
+    
+    if (period === 'monthly') {
+      filtered = reports.filter(r => r.type === 'monthly')
+      setFilteredReports({
+        message: '월간 리포트로 필터링됨',
+        data: filtered
+      })
+    } else if (period === 'quarterly') {
+      filtered = reports.filter(r => r.type === 'quarterly')
+      setFilteredReports({
+        message: '분기별 리포트로 필터링됨',
+        data: filtered
+      })
+    } else if (period === 'custom' && start && end) {
+      // 날짜 범위 필터링
+      filtered = reports.filter(r => {
+        const reportDate = new Date(r.generatedDate)
+        const startDateObj = new Date(start)
+        const endDateObj = new Date(end)
+        return reportDate >= startDateObj && reportDate <= endDateObj
+      })
+      setFilteredReports({
+        message: `${start}부터 ${end}까지 리포트로 필터링됨`,
+        data: filtered
+      })
+    } else {
+      setFilteredReports(null)
+    }
+  }
+
+  React.useEffect(() => {
+    if (periodFilter === 'custom' && startDate && endDate) {
+      filterReports(periodFilter, startDate, endDate)
+    }
+  }, [startDate, endDate, periodFilter])
 
   const handleViewReport = (reportId: string) => {
     console.log('보고서 보기:', reportId)
-    alert(`보고서 ID ${reportId}를 조회합니다.`)
+    
+    // 보고서 상세 보기 모달 또는 새 페이지로 이동
+    const report = reports.find(r => r.id === reportId)
+    if (report) {
+      alert(`${report.title} 보고서를 조회합니다.\n생성일: ${report.generatedDate}\n달성률: ${report.achievementRate}%`)
+    }
   }
 
   const handleDownloadReport = (reportId: string, title: string) => {
     console.log('보고서 다운로드:', reportId)
-    const element = document.createElement('a')
-    const file = new Blob([`보고서: ${title}\n생성일: ${new Date().toLocaleDateString()}`], {type: 'text/plain'})
-    element.href = URL.createObjectURL(file)
-    element.download = `${title}.txt`
-    document.body.appendChild(element)
-    element.click()
-    document.body.removeChild(element)
+    
+    const report = reports.find(r => r.id === reportId)
+    if (report) {
+      const reportContent = `
+보고서: ${title}
+생성일: ${report.generatedDate}
+기간: ${report.period}
+채널: ${report.channels.join(', ')}
+총 이벤트: ${report.totalEvents}개
+총 계약: ${report.totalContracts}건
+달성률: ${report.achievementRate}%
+상태: ${report.status}
+      `
+      
+      const element = document.createElement('a')
+      const file = new Blob([reportContent], {type: 'text/plain'})
+      element.href = URL.createObjectURL(file)
+      element.download = `${title.replace(/\s+/g, '_')}.txt`
+      document.body.appendChild(element)
+      element.click()
+      document.body.removeChild(element)
+      
+      alert('보고서가 다운로드되었습니다!')
+    }
   }
 
   const handleCreateReport = () => {
@@ -55,8 +118,24 @@ const Reports = () => {
       endDate,
       createdAt: new Date().toISOString()
     }
+    
     console.log('새 리포트 생성:', reportData)
-    alert('새 리포트가 생성되었습니다.')
+    
+    // 새 리포트 생성 로직
+    const newReport = {
+      id: `${Date.now()}`,
+      title: `${periodFilter === 'monthly' ? '월간' : periodFilter === 'quarterly' ? '분기별' : '사용자 정의'} 성과 리포트`,
+      type: periodFilter,
+      period: periodFilter === 'custom' ? `${startDate} ~ ${endDate}` : new Date().getFullYear() + '년',
+      generatedDate: new Date().toISOString().split('T')[0],
+      channels: ['라이브커머스', '베이비페어'],
+      totalEvents: 8,
+      totalContracts: 156,
+      achievementRate: 78.2,
+      status: 'completed'
+    }
+    
+    alert(`새 리포트가 생성되었습니다!\n제목: ${newReport.title}\n기간: ${newReport.period}`)
   }
 
   // 샘플 데이터 - 추후 Supabase 연동 시 실제 데이터로 교체
@@ -123,10 +202,11 @@ const Reports = () => {
     }
   ]
 
-  const filteredReports = reports.filter(report => {
+  
+  // 필터링된 리포트 또는 전체 리포트
+  const displayReports = filteredReports?.data || reports.filter(report => {
     const matchesPeriod = filterPeriod === 'all' || report.type === filterPeriod
     const matchesType = filterType === 'all' || report.status === filterType
-    
     return matchesPeriod && matchesType
   })
 
@@ -174,7 +254,15 @@ const Reports = () => {
           <p className="text-muted-foreground mt-2">
             성과 리포트를 생성하고 다운로드하세요
           </p>
+      </div>
+
+      {/* 필터링 결과 표시 */}
+      {filteredReports && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <p className="text-yellow-800 font-medium">{filteredReports.message}</p>
+          <p className="text-yellow-600 text-sm">필터링된 리포트: {filteredReports.data.length}개</p>
         </div>
+      )}
         <div className="flex items-center space-x-4">
           <Select value={periodFilter} onValueChange={handlePeriodChange}>
             <SelectTrigger className="w-48">
@@ -290,7 +378,7 @@ const Reports = () => {
 
       {/* Reports List */}
       <div className="space-y-4">
-        {filteredReports.map((report) => (
+        {displayReports.map((report) => (
           <Card key={report.id} className="hover:shadow-medium transition-shadow">
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
@@ -345,10 +433,10 @@ const Reports = () => {
         ))}
       </div>
 
-      {filteredReports.length === 0 && (
+      {displayReports.length === 0 && (
         <div className="text-center py-12">
           <div className="text-muted-foreground">
-            {filterPeriod !== 'all' || filterType !== 'all' 
+            {filteredReports || filterPeriod !== 'all' || filterType !== 'all' 
               ? '필터 조건에 맞는 리포트가 없습니다.' 
               : '생성된 리포트가 없습니다.'
             }

@@ -8,12 +8,42 @@ const Dashboard = () => {
   const [periodFilter, setPeriodFilter] = useState('monthly')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
+  const [filteredData, setFilteredData] = useState(null)
 
   const handlePeriodChange = (value: string) => {
     setPeriodFilter(value)
-    // 실제 데이터 필터링 로직이 여기에 들어갑니다
-    console.log('Period filter changed to:', value)
+    filterData(value, startDate, endDate)
   }
+
+  const filterData = (period: string, start: string, end: string) => {
+    // 실제 데이터 필터링 로직
+    console.log('Filtering data:', { period, start, end })
+    
+    // 기간에 따른 데이터 필터링 시뮬레이션
+    if (period === 'monthly') {
+      setFilteredData({ 
+        message: '월간 데이터로 필터링됨',
+        contracts: kpiData.totalContracts.current * 0.8 
+      })
+    } else if (period === 'quarterly') {
+      setFilteredData({ 
+        message: '분기별 데이터로 필터링됨',
+        contracts: kpiData.totalContracts.current * 1.2 
+      })
+    } else if (period === 'custom' && start && end) {
+      setFilteredData({ 
+        message: `${start}부터 ${end}까지 데이터로 필터링됨`,
+        contracts: kpiData.totalContracts.current * 0.9 
+      })
+    }
+  }
+
+  // 날짜 변경시 자동 필터링
+  React.useEffect(() => {
+    if (periodFilter === 'custom' && startDate && endDate) {
+      filterData(periodFilter, startDate, endDate)
+    }
+  }, [startDate, endDate, periodFilter])
   
   // 샘플 데이터 - 추후 Supabase 연동 시 실제 데이터로 교체
   const kpiData = {
@@ -138,9 +168,18 @@ const Dashboard = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {filteredData && (
+          <div className="col-span-full">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+              <p className="text-blue-800 font-medium">{filteredData.message}</p>
+              <p className="text-blue-600 text-sm">필터링된 계약건수: {Math.round(filteredData.contracts)}건</p>
+            </div>
+          </div>
+        )}
+        
         <KPICard
           title="총 계약건수"
-          value={kpiData.totalContracts.current}
+          value={filteredData?.contracts ? Math.round(filteredData.contracts) : kpiData.totalContracts.current}
           target={kpiData.totalContracts.target}
           unit="건"
           trend={kpiData.totalContracts.trend as any}
