@@ -519,54 +519,96 @@ ${filteredStats.message}
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-            {(filteredStats && filteredStats.filteredEventData && filteredStats.filteredEventData.length > 0 
-              ? filteredStats.filteredEventData 
-              : events.slice(0, 3) // 기본적으로 처음 3개 이벤트 표시
-            ).map((event, index) => (
-              <div key={event.id || index} className="p-4 border border-border rounded-lg">
-                <div className="flex justify-between items-center mb-3">
-                  <div>
-                    <h4 className="font-semibold">{event.title}</h4>
-                    <p className="text-sm text-muted-foreground">{event.type}</p>
+            {filteredStats && filteredStats.filteredEventData ? (
+              filteredStats.filteredEventData.length > 0 ? (
+                filteredStats.filteredEventData.map((event, index) => (
+                  <div key={event.id || index} className="p-4 border border-border rounded-lg">
+                    <div className="flex justify-between items-center mb-3">
+                      <div>
+                        <h4 className="font-semibold">{event.title}</h4>
+                        <p className="text-sm text-muted-foreground">{event.type}</p>
+                      </div>
+                      <Badge 
+                        className={
+                          event.efficiency >= 85 ? "bg-success text-success-foreground" :
+                          event.efficiency >= 70 ? "bg-warning text-warning-foreground" :
+                          "bg-danger text-danger-foreground"
+                        }
+                      >
+                        효율성 {event.efficiency}%
+                      </Badge>
+                    </div>
+                    <div className="grid grid-cols-5 gap-4 text-sm">
+                      <div>
+                        <p className="text-muted-foreground">계약건수</p>
+                        <p className="font-semibold">{event.actual_contracts}건</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">견적건수</p>
+                        <p className="font-semibold">{event.actual_estimates}건</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">계약장수</p>
+                        <p className="font-semibold">{event.actual_sqm.toLocaleString()}장</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">전환율</p>
+                        <p className="font-semibold">{((event.actual_contracts / event.actual_estimates) * 100).toFixed(1)}%</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">장당비용</p>
+                        <p className="font-semibold">{Math.round(event.total_cost / event.actual_sqm).toLocaleString()}원/장</p>
+                      </div>
+                    </div>
                   </div>
-                  <Badge 
-                    className={
-                      event.efficiency >= 85 ? "bg-success text-success-foreground" :
-                      event.efficiency >= 70 ? "bg-warning text-warning-foreground" :
-                      "bg-danger text-danger-foreground"
-                    }
-                  >
-                    효율성 {event.efficiency}%
-                  </Badge>
+                ))
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  선택한 기간에 해당하는 이벤트가 없습니다.
                 </div>
-                <div className="grid grid-cols-5 gap-4 text-sm">
-                  <div>
-                    <p className="text-muted-foreground">계약건수</p>
-                    <p className="font-semibold">{event.actual_contracts}건</p>
+              )
+            ) : (
+              events.slice(0, 3).map((event, index) => (
+                <div key={event.id || index} className="p-4 border border-border rounded-lg">
+                  <div className="flex justify-between items-center mb-3">
+                    <div>
+                      <h4 className="font-semibold">{event.title}</h4>
+                      <p className="text-sm text-muted-foreground">{event.type}</p>
+                    </div>
+                    <Badge 
+                      className={
+                        event.efficiency >= 85 ? "bg-success text-success-foreground" :
+                        event.efficiency >= 70 ? "bg-warning text-warning-foreground" :
+                        "bg-danger text-danger-foreground"
+                      }
+                    >
+                      효율성 {event.efficiency}%
+                    </Badge>
                   </div>
-                  <div>
-                    <p className="text-muted-foreground">견적건수</p>
-                    <p className="font-semibold">{event.actual_estimates}건</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">계약장수</p>
-                    <p className="font-semibold">{event.actual_sqm.toLocaleString()}장</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">전환율</p>
-                    <p className="font-semibold">{((event.actual_contracts / event.actual_estimates) * 100).toFixed(1)}%</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">장당비용</p>
-                    <p className="font-semibold">{Math.round(event.total_cost / event.actual_sqm).toLocaleString()}원/장</p>
+                  <div className="grid grid-cols-5 gap-4 text-sm">
+                    <div>
+                      <p className="text-muted-foreground">계약건수</p>
+                      <p className="font-semibold">{event.actual_contracts}건</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">견적건수</p>
+                      <p className="font-semibold">{event.actual_estimates}건</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">계약장수</p>
+                      <p className="font-semibold">{event.actual_sqm.toLocaleString()}장</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">전환율</p>
+                      <p className="font-semibold">{((event.actual_contracts / event.actual_estimates) * 100).toFixed(1)}%</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">장당비용</p>
+                      <p className="font-semibold">{Math.round(event.total_cost / event.actual_sqm).toLocaleString()}원/장</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-            {filteredStats && filteredStats.filteredEventData && filteredStats.filteredEventData.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                선택한 기간에 해당하는 이벤트가 없습니다.
-              </div>
+              ))
             )}
           </div>
         </CardContent>
