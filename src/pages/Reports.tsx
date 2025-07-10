@@ -24,6 +24,40 @@ const Reports = () => {
   const [filterPeriod, setFilterPeriod] = useState('all')
   const [filterType, setFilterType] = useState('all')
   const [periodFilter, setPeriodFilter] = useState('monthly')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+
+  const handlePeriodChange = (value: string) => {
+    setPeriodFilter(value)
+    console.log('Period filter changed to:', value)
+  }
+
+  const handleViewReport = (reportId: string) => {
+    console.log('보고서 보기:', reportId)
+    alert(`보고서 ID ${reportId}를 조회합니다.`)
+  }
+
+  const handleDownloadReport = (reportId: string, title: string) => {
+    console.log('보고서 다운로드:', reportId)
+    const element = document.createElement('a')
+    const file = new Blob([`보고서: ${title}\n생성일: ${new Date().toLocaleDateString()}`], {type: 'text/plain'})
+    element.href = URL.createObjectURL(file)
+    element.download = `${title}.txt`
+    document.body.appendChild(element)
+    element.click()
+    document.body.removeChild(element)
+  }
+
+  const handleCreateReport = () => {
+    const reportData = {
+      period: periodFilter,
+      startDate,
+      endDate,
+      createdAt: new Date().toISOString()
+    }
+    console.log('새 리포트 생성:', reportData)
+    alert('새 리포트가 생성되었습니다.')
+  }
 
   // 샘플 데이터 - 추후 Supabase 연동 시 실제 데이터로 교체
   const reports = [
@@ -142,7 +176,7 @@ const Reports = () => {
           </p>
         </div>
         <div className="flex items-center space-x-4">
-          <Select value={periodFilter} onValueChange={setPeriodFilter}>
+          <Select value={periodFilter} onValueChange={handlePeriodChange}>
             <SelectTrigger className="w-48">
               <SelectValue placeholder="조회기간" />
             </SelectTrigger>
@@ -154,12 +188,22 @@ const Reports = () => {
           </Select>
           {periodFilter === 'custom' && (
             <div className="flex items-center space-x-2">
-              <Input type="date" className="w-40" />
+              <Input 
+                type="date" 
+                className="w-40" 
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
               <span>~</span>
-              <Input type="date" className="w-40" />
+              <Input 
+                type="date" 
+                className="w-40" 
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
             </div>
           )}
-          <Button onClick={() => alert('새 리포트 생성 기능이 활성화되었습니다')}>
+          <Button onClick={handleCreateReport}>
             <FileText className="w-4 h-4 mr-2" />
             새 리포트 생성
           </Button>
@@ -283,12 +327,12 @@ const Reports = () => {
                   <div className="text-xs text-muted-foreground">달성률</div>
                   
                   <div className="flex space-x-2 mt-4">
-                    <Button variant="outline" size="sm" onClick={() => alert('리포트 보기 기능이 활성화되었습니다')}>
+                    <Button variant="outline" size="sm" onClick={() => handleViewReport(report.id)}>
                       <Eye className="w-4 h-4 mr-1" />
                       보기
                     </Button>
                     {report.status === 'completed' && (
-                      <Button variant="outline" size="sm" onClick={() => window.print()}>
+                      <Button variant="outline" size="sm" onClick={() => handleDownloadReport(report.id, report.title)}>
                         <Download className="w-4 h-4 mr-1" />
                         다운로드
                       </Button>

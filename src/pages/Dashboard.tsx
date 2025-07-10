@@ -6,6 +6,14 @@ import EventCard, { EventData } from '@/components/EventCard'
 
 const Dashboard = () => {
   const [periodFilter, setPeriodFilter] = useState('monthly')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+
+  const handlePeriodChange = (value: string) => {
+    setPeriodFilter(value)
+    // 실제 데이터 필터링 로직이 여기에 들어갑니다
+    console.log('Period filter changed to:', value)
+  }
   
   // 샘플 데이터 - 추후 Supabase 연동 시 실제 데이터로 교체
   const kpiData = {
@@ -97,7 +105,8 @@ const Dashboard = () => {
             제휴채널별 영업 성과와 주요 지표를 한눈에 확인하세요
           </p>
         </div>
-        <Select value={periodFilter} onValueChange={setPeriodFilter}>
+        <div className="flex items-center space-x-4">
+          <Select value={periodFilter} onValueChange={handlePeriodChange}>
           <SelectTrigger className="w-48">
             <SelectValue placeholder="조회기간" />
           </SelectTrigger>
@@ -107,6 +116,24 @@ const Dashboard = () => {
             <SelectItem value="custom">기간설정</SelectItem>
           </SelectContent>
         </Select>
+        {periodFilter === 'custom' && (
+          <div className="flex items-center space-x-2">
+            <input 
+              type="date" 
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="px-3 py-2 border rounded-md" 
+            />
+            <span>~</span>
+            <input 
+              type="date" 
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="px-3 py-2 border rounded-md" 
+            />
+          </div>
+        )}
+        </div>
       </div>
 
       {/* KPI Cards */}

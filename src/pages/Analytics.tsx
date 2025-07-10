@@ -19,6 +19,18 @@ import {
 
 const Analytics = () => {
   const [periodFilter, setPeriodFilter] = useState('monthly')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+
+  const handlePeriodChange = (value: string) => {
+    setPeriodFilter(value)
+    console.log('Period filter changed to:', value)
+  }
+
+  const handleDownload = () => {
+    console.log('리포트 다운로드 시작')
+    window.print()
+  }
   
   // 샘플 데이터 - 추후 Supabase 연동 시 실제 데이터로 교체
   const channelStats = [
@@ -104,7 +116,7 @@ const Analytics = () => {
           </p>
         </div>
         <div className="flex items-center space-x-4">
-          <Select value={periodFilter} onValueChange={setPeriodFilter}>
+          <Select value={periodFilter} onValueChange={handlePeriodChange}>
             <SelectTrigger className="w-48">
               <SelectValue placeholder="조회기간" />
             </SelectTrigger>
@@ -116,12 +128,22 @@ const Analytics = () => {
           </Select>
           {periodFilter === 'custom' && (
             <div className="flex items-center space-x-2">
-              <Input type="date" className="w-40" />
+              <Input 
+                type="date" 
+                className="w-40" 
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
               <span>~</span>
-              <Input type="date" className="w-40" />
+              <Input 
+                type="date" 
+                className="w-40" 
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
             </div>
           )}
-          <Button onClick={() => window.print()}>
+          <Button onClick={handleDownload}>
             <Download className="w-4 h-4 mr-2" />
             리포트 다운로드
           </Button>

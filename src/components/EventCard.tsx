@@ -27,6 +27,7 @@ export interface EventData {
   totalCost?: number
   costPerSqm?: number
   description?: string
+  manager?: string
 }
 
 interface EventCardProps {

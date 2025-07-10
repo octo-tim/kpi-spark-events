@@ -34,6 +34,7 @@ const EventCreate = () => {
     budget: '',
     contactPerson: '',
     contactPhone: '',
+    manager: '',
     // 프로모션 항목
     salePrice: '',
     additionalDiscount: '',
@@ -211,7 +212,7 @@ const EventCreate = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="contactPerson">담당자명</Label>
                 <Input
@@ -229,6 +230,16 @@ const EventCreate = () => {
                   value={formData.contactPhone}
                   onChange={(e) => handleInputChange('contactPhone', e.target.value)}
                   placeholder="담당자 연락처를 입력하세요"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="manager">이벤트 관리자</Label>
+                <Input
+                  id="manager"
+                  value={formData.manager}
+                  onChange={(e) => handleInputChange('manager', e.target.value)}
+                  placeholder="이벤트 관리자를 입력하세요"
                 />
               </div>
             </div>
