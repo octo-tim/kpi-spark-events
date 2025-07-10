@@ -67,6 +67,8 @@ const Analytics = () => {
       // 통계 계산
       const totalContracts = filteredEventData.reduce((sum, event) => sum + event.actual_contracts, 0)
       const totalSqm = filteredEventData.reduce((sum, event) => sum + event.actual_sqm, 0)
+      const totalCost = filteredEventData.reduce((sum, event) => sum + (event.total_cost || 0), 0)
+      const costPerSqm = totalSqm > 0 ? Math.round(totalCost / totalSqm) : 0
       
       let message = ''
       if (periodFilter === 'monthly') {
@@ -83,6 +85,8 @@ const Analytics = () => {
         totalEvents: filteredEventData.length,
         totalContracts,
         totalSqm,
+        totalCost,
+        costPerSqm,
         filteredEventData
       })
       
@@ -434,7 +438,7 @@ ${filteredStats.message}
         />
         <KPICard
           title="장당비용"
-          value={12500}
+          value={filteredStats?.costPerSqm || 0}
           unit="원/장"
           trend="down"
           trendValue={-8}
