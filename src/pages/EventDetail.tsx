@@ -47,13 +47,27 @@ const EventDetail = () => {
     return (
       <div className="text-center py-12">
         <h2 className="text-2xl font-bold text-foreground mb-2">이벤트를 찾을 수 없습니다</h2>
-        <p className="text-muted-foreground mb-4">요청하신 이벤트가 존재하지 않거나 삭제되었습니다.</p>
-        <Button asChild>
-          <Link to="/events">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            목록으로 돌아가기
-          </Link>
-        </Button>
+        <p className="text-muted-foreground mb-4">
+          요청하신 이벤트가 존재하지 않거나 삭제되었습니다.
+          {id && !id.includes('-') && (
+            <span className="block mt-2 text-sm">
+              (올바른 이벤트 ID 형식이 아닙니다)
+            </span>
+          )}
+        </p>
+        <div className="space-x-2">
+          <Button asChild>
+            <Link to="/events">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              이벤트 목록으로 돌아가기
+            </Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link to="/">
+              대시보드로 이동
+            </Link>
+          </Button>
+        </div>
       </div>
     )
   }
