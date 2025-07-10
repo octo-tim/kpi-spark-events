@@ -40,8 +40,6 @@ const EventCreate = () => {
     status: '계획중' as EventStatus,
     description: '',
     budget: '',
-    contactPerson: '',
-    contactPhone: '',
     manager: '',
     // 프로모션 항목
     salePrice: '',
@@ -284,53 +282,31 @@ const EventCreate = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="contactPerson">담당자명</Label>
-                <Input
-                  id="contactPerson"
-                  value={formData.contactPerson}
-                  onChange={(e) => handleInputChange('contactPerson', e.target.value)}
-                  placeholder="담당자명을 입력하세요"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="contactPhone">담당자 연락처</Label>
-                <Input
-                  id="contactPhone"
-                  value={formData.contactPhone}
-                  onChange={(e) => handleInputChange('contactPhone', e.target.value)}
-                  placeholder="담당자 연락처를 입력하세요"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="manager">이벤트 관리자</Label>
-                <div className="flex space-x-2">
-                  <Select value={formData.manager} onValueChange={(value) => handleInputChange('manager', value)}>
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="담당자 선택" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {eventManagers.map((manager) => (
-                        <SelectItem key={manager.id} value={manager.name}>
-                          {manager.name} ({manager.department})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowManagerForm(true)}
-                    className="flex items-center space-x-1"
-                  >
-                    <UserPlus className="w-4 h-4" />
-                    <span>신규</span>
-                  </Button>
-                </div>
+            <div className="space-y-2">
+              <Label htmlFor="manager">이벤트 관리자</Label>
+              <div className="flex space-x-2">
+                <Select value={formData.manager} onValueChange={(value) => handleInputChange('manager', value)}>
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="담당자 선택" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {eventManagers.map((manager) => (
+                      <SelectItem key={manager.id} value={manager.name}>
+                        {manager.name} ({manager.department})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowManagerForm(true)}
+                  className="flex items-center space-x-1"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  <span>신규</span>
+                </Button>
               </div>
             </div>
           </CardContent>
