@@ -11,11 +11,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Calendar, MapPin, Users, Target, ArrowLeft, Gift, FileText, Printer, Plus, X, ListChecks } from 'lucide-react'
+import { Calendar, MapPin, Users, Target, ArrowLeft, Gift, FileText, Printer, Plus, X, ListChecks, UserPlus } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { EventType } from '@/components/EventCard'
 import { useReactToPrint } from 'react-to-print'
-import { useRef } from 'react'
+import { useRef, useEffect } from 'react'
+import { supabase } from '@/integrations/supabase/client'
+import EventManagerForm from '@/components/EventManagerForm'
 
 const EventCreate = () => {
   const navigate = useNavigate()
@@ -53,6 +55,29 @@ const EventCreate = () => {
     { title: '', content: '' },
     { title: '', content: '' }
   ])
+  
+  const [showManagerForm, setShowManagerForm] = useState(false)
+  const [eventManagers, setEventManagers] = useState<any[]>([])
+
+  // 담당자 목록 로드
+  useEffect(() => {
+    loadEventManagers()
+  }, [])
+
+  const loadEventManagers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('event_managers')
+        .select('*')
+        .eq('is_active', true)
+        .order('name')
+
+      if (error) throw error
+      setEventManagers(data || [])
+    } catch (error) {
+      console.error('Error loading managers:', error)
+    }
+  }
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -235,12 +260,30 @@ const EventCreate = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="manager">이벤트 관리자</Label>
-                <Input
-                  id="manager"
-                  value={formData.manager}
-                  onChange={(e) => handleInputChange('manager', e.target.value)}
-                  placeholder="이벤트 관리자를 입력하세요"
-                />
+                <div className="flex space-x-2">
+                  <Select value={formData.manager} onValueChange={(value) => handleInputChange('manager', value)}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="담당자 선택" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {eventManagers.map((manager) => (
+                        <SelectItem key={manager.id} value={manager.name}>
+                          {manager.name} ({manager.department})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowManagerForm(true)}
+                    className="flex items-center space-x-1"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                    <span>신규</span>
+                  </Button>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -498,6 +541,21 @@ const EventCreate = () => {
             </Button>
           </CardContent>
         </Card>
+
+        {/* 담당자 등록 폼 */}
+        {showManagerForm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-background rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <EventManagerForm
+                onSuccess={() => {
+                  setShowManagerForm(false)
+                  loadEventManagers()
+                }}
+                onCancel={() => setShowManagerForm(false)}
+              />
+            </div>
+          </div>
+        )}
 
         {/* 제출 및 출력 버튼 */}
         <div className="flex justify-between">

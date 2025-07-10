@@ -136,39 +136,77 @@ const Dashboard = () => {
           </p>
         </div>
         <div className="flex items-center space-x-4">
-          <Select value={periodFilter} onValueChange={setPeriodFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="조회기간" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="monthly">월간</SelectItem>
-            <SelectItem value="quarterly">분기별</SelectItem>
-            <SelectItem value="custom">기간설정</SelectItem>
-          </SelectContent>
-        </Select>
-        {periodFilter === 'custom' && (
-          <div className="flex items-center space-x-2">
-            <input 
-              type="date" 
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="px-3 py-2 border rounded-md" 
-            />
-            <span>~</span>
-            <input 
-              type="date" 
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="px-3 py-2 border rounded-md" 
-            />
-          </div>
-        )}
-        <button 
-          onClick={() => filterData(periodFilter, startDate, endDate)}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-        >
-          검색
-        </button>
+          <Select value={periodFilter} onValueChange={handlePeriodChange}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="조회기간" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="monthly">월간</SelectItem>
+              <SelectItem value="quarterly">분기별</SelectItem>
+              <SelectItem value="custom">기간설정</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          {periodFilter === 'monthly' && (
+            <Select onValueChange={(value) => filterData('monthly', value, '')}>
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="월 선택" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="2024-01">2024년 1월</SelectItem>
+                <SelectItem value="2024-02">2024년 2월</SelectItem>
+                <SelectItem value="2024-03">2024년 3월</SelectItem>
+                <SelectItem value="2024-04">2024년 4월</SelectItem>
+                <SelectItem value="2024-05">2024년 5월</SelectItem>
+                <SelectItem value="2024-06">2024년 6월</SelectItem>
+                <SelectItem value="2024-07">2024년 7월</SelectItem>
+                <SelectItem value="2024-08">2024년 8월</SelectItem>
+                <SelectItem value="2024-09">2024년 9월</SelectItem>
+                <SelectItem value="2024-10">2024년 10월</SelectItem>
+                <SelectItem value="2024-11">2024년 11월</SelectItem>
+                <SelectItem value="2024-12">2024년 12월</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+          
+          {periodFilter === 'quarterly' && (
+            <Select onValueChange={(value) => filterData('quarterly', value, '')}>
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="분기 선택" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="2024-Q1">2024년 1분기</SelectItem>
+                <SelectItem value="2024-Q2">2024년 2분기</SelectItem>
+                <SelectItem value="2024-Q3">2024년 3분기</SelectItem>
+                <SelectItem value="2024-Q4">2024년 4분기</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+          
+          {periodFilter === 'custom' && (
+            <div className="flex items-center space-x-2">
+              <input 
+                type="date" 
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="px-3 py-2 border rounded-md" 
+              />
+              <span>~</span>
+              <input 
+                type="date" 
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="px-3 py-2 border rounded-md" 
+              />
+            </div>
+          )}
+          
+          <button 
+            onClick={() => filterData(periodFilter, startDate, endDate)}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+          >
+            검색
+          </button>
         </div>
       </div>
 
