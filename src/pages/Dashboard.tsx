@@ -12,28 +12,46 @@ const Dashboard = () => {
 
   const handlePeriodChange = (value: string) => {
     setPeriodFilter(value)
-    filterData(value, startDate, endDate)
+    if (value !== 'custom') {
+      setStartDate('')
+      setEndDate('')
+      setFilteredData(null)
+    }
   }
 
   const filterData = (period: string, start: string, end: string) => {
-    // 실제 데이터 필터링 로직
     console.log('Filtering data:', { period, start, end })
     
+    // 빈 값 체크
+    if (!period || (period === 'custom' && (!start || !end))) {
+      setFilteredData(null)
+      return
+    }
+    
     // 기간에 따른 데이터 필터링 시뮬레이션
-    if (period === 'monthly') {
+    if (period === 'monthly' && start) {
+      const monthData = start.split('-')
+      const year = monthData[0]
+      const month = monthData[1]
       setFilteredData({ 
-        message: '월간 데이터로 필터링됨',
-        contracts: kpiData.totalContracts.current * 0.8 
+        message: `${year}년 ${parseInt(month)}월 데이터로 필터링됨`,
+        contracts: Math.round(kpiData.totalContracts.current * 0.8)
       })
-    } else if (period === 'quarterly') {
+    } else if (period === 'quarterly' && start) {
+      const quarterMap = {
+        '2024-Q1': '2024년 1분기',
+        '2024-Q2': '2024년 2분기', 
+        '2024-Q3': '2024년 3분기',
+        '2024-Q4': '2024년 4분기'
+      }
       setFilteredData({ 
-        message: '분기별 데이터로 필터링됨',
-        contracts: kpiData.totalContracts.current * 1.2 
+        message: `${quarterMap[start as keyof typeof quarterMap]} 데이터로 필터링됨`,
+        contracts: Math.round(kpiData.totalContracts.current * 1.2)
       })
     } else if (period === 'custom' && start && end) {
       setFilteredData({ 
         message: `${start}부터 ${end}까지 데이터로 필터링됨`,
-        contracts: kpiData.totalContracts.current * 0.9 
+        contracts: Math.round(kpiData.totalContracts.current * 0.9)
       })
     }
   }

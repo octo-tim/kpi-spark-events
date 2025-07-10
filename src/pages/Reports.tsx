@@ -30,11 +30,21 @@ const Reports = () => {
 
   const handlePeriodChange = (value: string) => {
     setPeriodFilter(value)
-    filterReports(value, startDate, endDate)
+    if (value !== 'custom') {
+      setStartDate('')
+      setEndDate('')
+      setFilteredReports(null)
+    }
   }
 
   const filterReports = (period: string, start: string, end: string) => {
     console.log('Reports filtering:', { period, start, end })
+    
+    // 빈 값 체크
+    if (!period || (period === 'custom' && (!start || !end))) {
+      setFilteredReports(null)
+      return
+    }
     
     let filtered = reports
     
