@@ -179,24 +179,29 @@ const Dashboard = () => {
         costPerSqm: channel.sqm > 0 ? Math.round(channel.totalCost / channel.sqm) : 0
       }))
 
-      // 이벤트 데이터를 EventData 형식으로 변환
-      const convertedEvents: EventData[] = filteredEvents.map(event => ({
-        id: event.id,
-        title: event.title,
-        type: event.type,
-        status: event.status,
-        startDate: event.start_date,
-        endDate: event.end_date,
-        partner: event.partner || '',
-        targetContracts: event.target_contracts || 0,
-        actualContracts: event.actual_contracts || 0,
-        targetEstimates: event.target_estimates || 0,
-        actualEstimates: event.actual_estimates || 0,
-        targetSqm: event.target_sqm || 0,
-        actualSqm: event.actual_sqm || 0,
-        totalCost: event.total_cost || 0,
-        costPerSqm: event.actual_sqm > 0 ? Math.round((event.total_cost || 0) / event.actual_sqm) : 0
-      }))
+      // 이벤트 데이터를 EventData 형식으로 변환 (데이터 타입 안전성 강화)
+      const convertedEvents: EventData[] = filteredEvents.map(event => {
+        const actualSqm = Number(event.actual_sqm) || 0
+        const totalCost = Number(event.total_cost) || 0
+        
+        return {
+          id: event.id,
+          title: event.title,
+          type: event.type,
+          status: event.status,
+          startDate: event.start_date,
+          endDate: event.end_date,
+          partner: event.partner || '',
+          targetContracts: Number(event.target_contracts) || 0,
+          actualContracts: Number(event.actual_contracts) || 0,
+          targetEstimates: Number(event.target_estimates) || 0,
+          actualEstimates: Number(event.actual_estimates) || 0,
+          targetSqm: Number(event.target_sqm) || 0,
+          actualSqm: actualSqm,
+          totalCost: totalCost,
+          costPerSqm: actualSqm > 0 ? Math.round(totalCost / actualSqm) : 0
+        }
+      })
 
       // 메시지 생성
       let message = ''
