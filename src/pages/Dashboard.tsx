@@ -16,8 +16,15 @@ const Dashboard = () => {
       totalSqm: number
       monthlyRevenue: number
     }
-    channelData: typeof channelPerformanceData
-    recentEvents: typeof recentEvents
+    channelData: Array<{
+      channel: string
+      contracts: number
+      estimates: number
+      sqm: number
+      totalCost: number
+      costPerSqm: number
+    }>
+    recentEvents: EventData[]
   } | null>(null)
 
   const handlePeriodChange = (value: string) => {
@@ -99,13 +106,31 @@ const Dashboard = () => {
       message = `${start}부터 ${end}까지 데이터로 필터링됨`
     }
 
-    setFilteredData({
+    console.log('=== 필터링 실행 ===', {
+      message,
+      originalContracts: kpiData.totalContracts.current,
+      filteredContracts: filteredKpiData.totalContracts,
+      multiplier,
+      period,
+      start,
+      end
+    })
+
+    const newFilteredData = {
       message,
       kpiData: filteredKpiData,
       channelData: filteredChannelData,
       recentEvents: filteredEvents
-    })
+    }
+
+    console.log('새로 설정할 filteredData:', newFilteredData)
+    setFilteredData(newFilteredData)
   }
+
+  // filteredData 변화 모니터링
+  React.useEffect(() => {
+    console.log('filteredData 상태 변경됨:', filteredData)
+  }, [filteredData])
 
   // 날짜 변경시 자동 필터링
   React.useEffect(() => {
@@ -121,6 +146,13 @@ const Dashboard = () => {
     totalSqm: { current: 15420, target: 18000, trend: 'down', trendValue: -3 },
     monthlyRevenue: { current: 8500000, target: 10000000, trend: 'up', trendValue: 15 }
   }
+
+  const channelPerformanceData = [
+    { channel: '라이브커머스', contracts: 145, estimates: 320, sqm: 4200, totalCost: 63000000, costPerSqm: 15000 },
+    { channel: '베이비페어', contracts: 89, estimates: 180, sqm: 3100, totalCost: 46500000, costPerSqm: 15000 },
+    { channel: '입주박람회', contracts: 67, estimates: 150, sqm: 2800, totalCost: 42000000, costPerSqm: 15000 },
+    { channel: '인플루언서공구', contracts: 34, estimates: 90, sqm: 1500, totalCost: 22500000, costPerSqm: 15000 }
+  ]
 
   const recentEvents: EventData[] = [
     {
@@ -173,13 +205,6 @@ const Dashboard = () => {
       totalCost: 12000000,
       costPerSqm: 10000
     }
-  ]
-
-  const channelPerformanceData = [
-    { channel: '라이브커머스', contracts: 145, estimates: 320, sqm: 4200, totalCost: 63000000, costPerSqm: 15000 },
-    { channel: '베이비페어', contracts: 89, estimates: 180, sqm: 3100, totalCost: 46500000, costPerSqm: 15000 },
-    { channel: '입주박람회', contracts: 67, estimates: 150, sqm: 2800, totalCost: 42000000, costPerSqm: 15000 },
-    { channel: '인플루언서공구', contracts: 34, estimates: 90, sqm: 1500, totalCost: 22500000, costPerSqm: 15000 }
   ]
 
   const monthlyTrendData = [
@@ -305,7 +330,11 @@ const Dashboard = () => {
         
         <KPICard
           title="총 계약건수"
-          value={filteredData?.kpiData.totalContracts ?? kpiData.totalContracts.current}
+          value={(() => {
+            const value = filteredData?.kpiData.totalContracts ?? kpiData.totalContracts.current
+            console.log('KPI Card - 총 계약건수:', { filteredData: filteredData?.kpiData.totalContracts, original: kpiData.totalContracts.current, final: value })
+            return value
+          })()}
           target={kpiData.totalContracts.target}
           unit="건"
           trend={kpiData.totalContracts.trend as any}
