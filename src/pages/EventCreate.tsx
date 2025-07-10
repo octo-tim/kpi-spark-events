@@ -440,7 +440,6 @@ const EventCreate = () => {
             {executionPlans.map((plan, index) => (
               <div key={index} className="border rounded-lg p-4 space-y-3">
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm font-medium">계획 {index + 1}</Label>
                   {executionPlans.length > 1 && (
                     <Button
                       type="button"

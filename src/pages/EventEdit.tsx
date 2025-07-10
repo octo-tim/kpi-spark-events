@@ -12,12 +12,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ArrowLeft, Save, Plus, X, DollarSign, MessageSquare, Target, BarChart3, TrendingUp } from 'lucide-react'
+import { ArrowLeft, Save, Plus, X, DollarSign, MessageSquare, Target, BarChart3, TrendingUp, Printer } from 'lucide-react'
 import { EventType, EventStatus } from '@/components/EventCard'
+import { useReactToPrint } from 'react-to-print'
+import { useRef } from 'react'
 
 const EventEdit = () => {
   const { id } = useParams()
   const navigate = useNavigate()
+  const printRef = useRef<HTMLDivElement>(null)
 
   // 기존 이벤트 데이터 로드 (샘플)
   const [formData, setFormData] = useState({
@@ -37,32 +40,29 @@ const EventEdit = () => {
     description: '신혼부부를 대상으로 한 맞춤형 인테리어 라이브 쇼핑 이벤트',
     contactPerson: '김영업',
     contactPhone: '010-1234-5678',
-    customerReaction: '',
-    eventSummary: ''
+    customerReaction: '라이브 방송 중 실시간 채팅에서 제품에 대한 긍정적인 반응이 많았으며, 특히 가격 경쟁력과 디자인에 대한 문의가 집중되었습니다. 견적 신청율이 목표 대비 79% 달성하였고, 실제 계약 전환율은 64%로 예상보다 높은 수치를 기록했습니다.',
+    eventSummary: '신혼부부 타겟 라이브 쇼핑 이벤트는 전반적으로 성공적이었습니다. 비록 목표치에는 약간 미달했지만, 높은 참여도와 긍정적인 고객 반응을 얻었으며, 향후 유사 이벤트에 대한 유의미한 인사이트를 확보했습니다. 특히 실시간 소통의 효과가 매우 좋았습니다.'
   })
 
   // 비용내역 관리
   const [costItems, setCostItems] = useState([
-    { item: '', amount: '', note: '' },
-    { item: '', amount: '', note: '' },
-    { item: '', amount: '', note: '' }
+    { item: '라이브 스튜디오 대여', amount: '500000', note: '2일간 대여비용' },
+    { item: '제품 배송비', amount: '150000', note: '샘플 제품 배송' },
+    { item: '광고비', amount: '800000', note: '네이버 쇼핑 광고' }
   ])
 
-  // 계획 달성 현황 (실행계획 제목들 - 실제로는 이벤트 생성 시 저장된 제목들을 가져와야 함)
-  const [executionPlans] = useState([
-    '마케팅 캠페인 실행',
-    '고객 응대 강화',
-    '제품 진열 최적화'
+  // 계획 달성 현황
+  const [planAchievements, setPlanAchievements] = useState([
+    { title: '마케팅 캠페인 실행', content: '네이버 쇼핑라이브 메인 노출 및 SNS 광고를 통해 목표 조회수 80% 달성. 실시간 시청자 수는 평균 1,200명으로 예상보다 높은 참여도를 보였습니다.' },
+    { title: '고객 응대 강화', content: '실시간 채팅 응답률 95% 달성. 전담 상담사 2명 배치로 즉시 응답 체계 구축. 고객 만족도 설문에서 4.3/5점 기록했습니다.' },
+    { title: '제품 진열 최적화', content: '라이브 스튜디오 내 제품 진열을 고객 동선에 맞게 최적화. 제품별 노출 시간을 균등하게 배분하여 전체 제품에 대한 관심도를 높였습니다.' }
   ])
-  const [planAchievements, setPlanAchievements] = useState(
-    executionPlans.map(title => ({ title, content: '' }))
-  )
 
   // 향후 개선 방향
   const [improvements, setImprovements] = useState([
-    { title: '', content: '' },
-    { title: '', content: '' },
-    { title: '', content: '' }
+    { title: '사전 홍보 강화', content: '이벤트 시작 1주일 전부터 타겟 고객층에 맞춤형 사전 홍보를 진행하여 참여율을 높일 필요가 있습니다.' },
+    { title: '인터랙티브 요소 추가', content: '실시간 퀴즈, 경품 추첨 등 참여형 콘텐츠를 더 많이 포함하여 시청자 참여도를 높이겠습니다.' },
+    { title: '팔로우업 시스템 구축', content: '이벤트 참여 고객에 대한 지속적인 관리 시스템을 구축하여 재구매율을 높이는 방안을 마련하겠습니다.' }
   ])
 
   const handleInputChange = (field: string, value: string) => {
@@ -85,10 +85,20 @@ const EventEdit = () => {
     }
   }
 
-  const handlePlanAchievementChange = (index: number, content: string) => {
+  const handlePlanAchievementChange = (index: number, field: 'title' | 'content', value: string) => {
     setPlanAchievements(prev => prev.map((plan, i) => 
-      i === index ? { ...plan, content } : plan
+      i === index ? { ...plan, [field]: value } : plan
     ))
+  }
+
+  const addPlanAchievement = () => {
+    setPlanAchievements(prev => [...prev, { title: '', content: '' }])
+  }
+
+  const removePlanAchievement = (index: number) => {
+    if (planAchievements.length > 1) {
+      setPlanAchievements(prev => prev.filter((_, i) => i !== index))
+    }
   }
 
   const handleImprovementChange = (index: number, field: 'title' | 'content', value: string) => {
@@ -122,11 +132,15 @@ const EventEdit = () => {
     navigate(`/events/${id}`)
   }
 
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+  })
+
   const eventTypes: EventType[] = ['라이브커머스', '베이비페어', '입주박람회', '인플루언서공구']
   const eventStatuses: EventStatus[] = ['계획중', '진행중', '완료', '취소']
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" ref={printRef}>
       {/* Page Header */}
       <div className="flex items-center space-x-4">
         <Button variant="outline" size="sm" asChild>
@@ -460,17 +474,52 @@ const EventEdit = () => {
           <CardContent className="space-y-4">
             {planAchievements.map((plan, index) => (
               <div key={index} className="border rounded-lg p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  {planAchievements.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removePlanAchievement(index)}
+                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+                
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">{plan.title}</Label>
+                  <Label htmlFor={`planTitle${index}`}>제목</Label>
+                  <Input
+                    id={`planTitle${index}`}
+                    value={plan.title}
+                    onChange={(e) => handlePlanAchievementChange(index, 'title', e.target.value)}
+                    placeholder="계획 제목을 입력하세요"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor={`planContent${index}`}>달성 현황</Label>
                   <Textarea
+                    id={`planContent${index}`}
                     value={plan.content}
-                    onChange={(e) => handlePlanAchievementChange(index, e.target.value)}
+                    onChange={(e) => handlePlanAchievementChange(index, 'content', e.target.value)}
                     placeholder="해당 계획의 달성 현황을 입력하세요"
                     rows={3}
                   />
                 </div>
               </div>
             ))}
+            
+            <Button
+              type="button"
+              variant="outline"
+              onClick={addPlanAchievement}
+              className="w-full flex items-center space-x-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>계획 추가</span>
+            </Button>
           </CardContent>
         </Card>
 
@@ -511,7 +560,6 @@ const EventEdit = () => {
             {improvements.map((improvement, index) => (
               <div key={index} className="border rounded-lg p-4 space-y-3">
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm font-medium">개선사항 {index + 1}</Label>
                   {improvements.length > 1 && (
                     <Button
                       type="button"
@@ -560,15 +608,22 @@ const EventEdit = () => {
           </CardContent>
         </Card>
 
-        {/* 제출 버튼 */}
-        <div className="flex justify-end space-x-4">
-          <Button type="button" variant="outline" asChild>
-            <Link to={`/events/${id}`}>취소</Link>
+        {/* 제출 및 출력 버튼 */}
+        <div className="flex justify-between">
+          <Button type="button" variant="outline" onClick={handlePrint} className="flex items-center space-x-2">
+            <Printer className="w-4 h-4" />
+            <span>PDF 출력</span>
           </Button>
-          <Button type="submit">
-            <Save className="w-4 h-4 mr-2" />
-            저장
-          </Button>
+          
+          <div className="flex space-x-4">
+            <Button type="button" variant="outline" asChild>
+              <Link to={`/events/${id}`}>취소</Link>
+            </Button>
+            <Button type="submit">
+              <Save className="w-4 h-4 mr-2" />
+              저장
+            </Button>
+          </div>
         </div>
       </form>
     </div>
