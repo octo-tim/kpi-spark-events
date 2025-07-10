@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -21,75 +21,62 @@ const EventList = () => {
   const [filterStatus, setFilterStatus] = useState<EventStatus | 'all'>('all')
   const [periodType, setPeriodType] = useState<'month' | 'quarter' | 'range'>('month')
   const [selectedPeriod, setSelectedPeriod] = useState('')
-  const [filteredByPeriodEvents, setFilteredByPeriodEvents] = useState<any[]>([])
   
   const { events, loading, fetchEventsByMonth, fetchEventsByQuarter, fetchEventsByPeriod } = useEvents()
 
-  // 기간별 이벤트 조회
-  useEffect(() => {
-    const fetchPeriodEvents = async () => {
-      console.log('EventList 기간별 조회 - periodType:', periodType, 'selectedPeriod:', selectedPeriod)
-      
-      if (!selectedPeriod) {
-        console.log('EventList - selectedPeriod가 없어서 전체 이벤트 사용:', events.length)
-        setFilteredByPeriodEvents(events)
-        return
-      }
-
-      try {
-        let periodEvents: any[] = []
-        
-        if (periodType === 'month') {
-          const [year, month] = selectedPeriod.split('-')
-          console.log('EventList - 월별 조회:', year, month)
-          periodEvents = await fetchEventsByMonth(year, month)
-        } else if (periodType === 'quarter') {
-          const [year, quarter] = selectedPeriod.split('-Q')
-          console.log('EventList - 분기별 조회:', year, quarter)
-          periodEvents = await fetchEventsByQuarter(year, quarter)
-        } else if (periodType === 'range') {
-          console.log('EventList - 기간별 조회:', selectedPeriod)
-          if (selectedPeriod === '2025') {
-            periodEvents = await fetchEventsByPeriod('2025-01-01', '2025-12-31')
-          } else if (selectedPeriod === '2024') {
-            periodEvents = await fetchEventsByPeriod('2024-01-01', '2024-12-31')
-          } else if (selectedPeriod === '2024-H2') {
-            periodEvents = await fetchEventsByPeriod('2024-07-01', '2024-12-31')
-          } else if (selectedPeriod === '2024-H1') {
-            periodEvents = await fetchEventsByPeriod('2024-01-01', '2024-06-30')
-          } else if (selectedPeriod === '2023') {
-            periodEvents = await fetchEventsByPeriod('2023-01-01', '2023-12-31')
-          }
-        }
-        
-        console.log('EventList - 조회된 이벤트 수:', periodEvents.length)
-        setFilteredByPeriodEvents(periodEvents)
-      } catch (error) {
-        console.error('기간별 이벤트 조회 중 오류:', error)
-        setFilteredByPeriodEvents([])
-      }
-    }
-
-    fetchPeriodEvents()
-  }, [selectedPeriod, periodType, events, fetchEventsByMonth, fetchEventsByQuarter, fetchEventsByPeriod])
-
   // 기간 선택 시 기본값 설정
   useEffect(() => {
-    if (periodType === 'month' && !selectedPeriod) {
-      const now = new Date()
-      const currentPeriod = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`
-      setSelectedPeriod(currentPeriod)
-    } else if (periodType === 'quarter' && !selectedPeriod) {
-      const now = new Date()
-      const currentQuarter = Math.ceil((now.getMonth() + 1) / 3)
-      setSelectedPeriod(`${now.getFullYear()}-Q${currentQuarter}`)
-    } else if (periodType === 'range' && !selectedPeriod) {
-      setSelectedPeriod('2025')
+    if (!selectedPeriod) {
+      if (periodType === 'month') {
+        const now = new Date()
+        const currentPeriod = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`
+        setSelectedPeriod(currentPeriod)
+      } else if (periodType === 'quarter') {
+        const now = new Date()
+        const currentQuarter = Math.ceil((now.getMonth() + 1) / 3)
+        setSelectedPeriod(`${now.getFullYear()}-Q${currentQuarter}`)
+      } else if (periodType === 'range') {
+        setSelectedPeriod('2025')
+      }
     }
   }, [periodType, selectedPeriod])
 
-  // 표시할 이벤트 목록 결정
-  const eventsToShow = selectedPeriod ? filteredByPeriodEvents : events
+  // 기간별 필터링된 이벤트 목록 계산 (메모이제이션)
+  const filteredByPeriodEvents = useMemo(() => {
+    if (!selectedPeriod) return events
+    
+    return events.filter(event => {
+      const eventStartDate = new Date(event.start_date)
+      
+      if (periodType === 'month') {
+        const [year, month] = selectedPeriod.split('-')
+        return eventStartDate.getFullYear() === parseInt(year) && 
+               (eventStartDate.getMonth() + 1) === parseInt(month)
+      } else if (periodType === 'quarter') {
+        const [year, quarter] = selectedPeriod.split('-Q')
+        const eventYear = eventStartDate.getFullYear()
+        const eventQuarter = Math.ceil((eventStartDate.getMonth() + 1) / 3)
+        return eventYear === parseInt(year) && eventQuarter === parseInt(quarter)
+      } else if (periodType === 'range') {
+        if (selectedPeriod === '2025') {
+          return eventStartDate.getFullYear() === 2025
+        } else if (selectedPeriod === '2024') {
+          return eventStartDate.getFullYear() === 2024
+        } else if (selectedPeriod === '2024-H2') {
+          return eventStartDate.getFullYear() === 2024 && eventStartDate.getMonth() >= 6
+        } else if (selectedPeriod === '2024-H1') {
+          return eventStartDate.getFullYear() === 2024 && eventStartDate.getMonth() < 6
+        } else if (selectedPeriod === '2023') {
+          return eventStartDate.getFullYear() === 2023
+        }
+      }
+      
+      return true
+    })
+  }, [events, selectedPeriod, periodType])
+
+  // 표시할 이벤트 목록
+  const eventsToShow = filteredByPeriodEvents
 
   // 이벤트 데이터를 EventData 형태로 변환
   const convertedEvents: EventData[] = eventsToShow.map(event => ({
