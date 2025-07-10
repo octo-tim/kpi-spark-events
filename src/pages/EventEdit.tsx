@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ArrowLeft, Save } from 'lucide-react'
+import { ArrowLeft, Save, Plus, X, DollarSign, MessageSquare, Target, BarChart3, TrendingUp } from 'lucide-react'
 import { EventType, EventStatus } from '@/components/EventCard'
 
 const EventEdit = () => {
@@ -35,14 +35,83 @@ const EventEdit = () => {
     targetSqm: '1500',
     actualSqm: '960',
     description: '신혼부부를 대상으로 한 맞춤형 인테리어 라이브 쇼핑 이벤트',
-    budget: '5000000',
     contactPerson: '김영업',
     contactPhone: '010-1234-5678',
-    notes: '현재 진행 상황이 양호하며, 목표 달성 가능성이 높음'
+    customerReaction: '',
+    eventSummary: ''
   })
+
+  // 비용내역 관리
+  const [costItems, setCostItems] = useState([
+    { item: '', amount: '', note: '' },
+    { item: '', amount: '', note: '' },
+    { item: '', amount: '', note: '' }
+  ])
+
+  // 계획 달성 현황 (실행계획 제목들 - 실제로는 이벤트 생성 시 저장된 제목들을 가져와야 함)
+  const [executionPlans] = useState([
+    '마케팅 캠페인 실행',
+    '고객 응대 강화',
+    '제품 진열 최적화'
+  ])
+  const [planAchievements, setPlanAchievements] = useState(
+    executionPlans.map(title => ({ title, content: '' }))
+  )
+
+  // 향후 개선 방향
+  const [improvements, setImprovements] = useState([
+    { title: '', content: '' },
+    { title: '', content: '' },
+    { title: '', content: '' }
+  ])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
+  }
+
+  const handleCostItemChange = (index: number, field: 'item' | 'amount' | 'note', value: string) => {
+    setCostItems(prev => prev.map((item, i) => 
+      i === index ? { ...item, [field]: value } : item
+    ))
+  }
+
+  const addCostItem = () => {
+    setCostItems(prev => [...prev, { item: '', amount: '', note: '' }])
+  }
+
+  const removeCostItem = (index: number) => {
+    if (costItems.length > 1) {
+      setCostItems(prev => prev.filter((_, i) => i !== index))
+    }
+  }
+
+  const handlePlanAchievementChange = (index: number, content: string) => {
+    setPlanAchievements(prev => prev.map((plan, i) => 
+      i === index ? { ...plan, content } : plan
+    ))
+  }
+
+  const handleImprovementChange = (index: number, field: 'title' | 'content', value: string) => {
+    setImprovements(prev => prev.map((item, i) => 
+      i === index ? { ...item, [field]: value } : item
+    ))
+  }
+
+  const addImprovement = () => {
+    setImprovements(prev => [...prev, { title: '', content: '' }])
+  }
+
+  const removeImprovement = (index: number) => {
+    if (improvements.length > 1) {
+      setImprovements(prev => prev.filter((_, i) => i !== index))
+    }
+  }
+
+  const getTotalCost = () => {
+    return costItems.reduce((total, item) => {
+      const amount = parseFloat(item.amount) || 0
+      return total + amount
+    }, 0)
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -257,23 +326,83 @@ const EventEdit = () => {
           </CardContent>
         </Card>
 
-        {/* 추가 정보 */}
+        {/* 비용내역 */}
         <Card>
           <CardHeader>
-            <CardTitle>추가 정보</CardTitle>
+            <CardTitle className="flex items-center space-x-2">
+              <DollarSign className="w-5 h-5" />
+              <span>비용내역</span>
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="budget">예산</Label>
-                <Input
-                  id="budget"
-                  type="number"
-                  value={formData.budget}
-                  onChange={(e) => handleInputChange('budget', e.target.value)}
-                />
-              </div>
+            <div className="space-y-4">
+              {costItems.map((cost, index) => (
+                <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                  <div className="space-y-2">
+                    <Label htmlFor={`costItem${index}`}>항목</Label>
+                    <Input
+                      id={`costItem${index}`}
+                      value={cost.item}
+                      onChange={(e) => handleCostItemChange(index, 'item', e.target.value)}
+                      placeholder="비용 항목"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor={`costAmount${index}`}>금액</Label>
+                    <Input
+                      id={`costAmount${index}`}
+                      type="number"
+                      value={cost.amount}
+                      onChange={(e) => handleCostItemChange(index, 'amount', e.target.value)}
+                      placeholder="금액"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor={`costNote${index}`}>비고</Label>
+                    <Input
+                      id={`costNote${index}`}
+                      value={cost.note}
+                      onChange={(e) => handleCostItemChange(index, 'note', e.target.value)}
+                      placeholder="비고"
+                    />
+                  </div>
+                  
+                  <div className="flex justify-end">
+                    {costItems.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeCostItem(index)}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addCostItem}
+                className="flex items-center space-x-2"
+              >
+                <Plus className="w-4 h-4" />
+                <span>항목 추가</span>
+              </Button>
               
+              <div className="text-lg font-semibold">
+                총 금액: {getTotalCost().toLocaleString()}원
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
               <div className="space-y-2">
                 <Label htmlFor="contactPerson">담당자명</Label>
                 <Input
@@ -292,17 +421,142 @@ const EventEdit = () => {
                 />
               </div>
             </div>
+          </CardContent>
+        </Card>
 
+        {/* 고객반응 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <MessageSquare className="w-5 h-5" />
+              <span>고객반응</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              이벤트 기간내 고객의 반응을 정성 또는 정량적으로 기술하세요
+            </p>
             <div className="space-y-2">
-              <Label htmlFor="notes">비고</Label>
+              <Label htmlFor="customerReaction">고객반응 상세</Label>
               <Textarea
-                id="notes"
-                value={formData.notes}
-                onChange={(e) => handleInputChange('notes', e.target.value)}
-                placeholder="추가 메모나 특이사항을 입력하세요"
-                rows={3}
+                id="customerReaction"
+                value={formData.customerReaction}
+                onChange={(e) => handleInputChange('customerReaction', e.target.value)}
+                placeholder="고객의 반응을 구체적으로 입력하세요"
+                rows={5}
               />
             </div>
+          </CardContent>
+        </Card>
+
+        {/* 계획 달성 현황 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Target className="w-5 h-5" />
+              <span>계획 달성 현황</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {planAchievements.map((plan, index) => (
+              <div key={index} className="border rounded-lg p-4 space-y-3">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">{plan.title}</Label>
+                  <Textarea
+                    value={plan.content}
+                    onChange={(e) => handlePlanAchievementChange(index, e.target.value)}
+                    placeholder="해당 계획의 달성 현황을 입력하세요"
+                    rows={3}
+                  />
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* 이벤트 총평 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <BarChart3 className="w-5 h-5" />
+              <span>이벤트 총평</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              이벤트에 대한 전반적인 결과를 요약하세요
+            </p>
+            <div className="space-y-2">
+              <Label htmlFor="eventSummary">이벤트 총평</Label>
+              <Textarea
+                id="eventSummary"
+                value={formData.eventSummary}
+                onChange={(e) => handleInputChange('eventSummary', e.target.value)}
+                placeholder="이벤트 전반적인 결과와 성과를 요약해주세요"
+                rows={5}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 향후 개선 방향 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <TrendingUp className="w-5 h-5" />
+              <span>향후 개선 방향</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {improvements.map((improvement, index) => (
+              <div key={index} className="border rounded-lg p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium">개선사항 {index + 1}</Label>
+                  {improvements.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeImprovement(index)}
+                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor={`improvementTitle${index}`}>제목</Label>
+                  <Input
+                    id={`improvementTitle${index}`}
+                    value={improvement.title}
+                    onChange={(e) => handleImprovementChange(index, 'title', e.target.value)}
+                    placeholder="개선사항 제목을 입력하세요"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor={`improvementContent${index}`}>세부내용</Label>
+                  <Textarea
+                    id={`improvementContent${index}`}
+                    value={improvement.content}
+                    onChange={(e) => handleImprovementChange(index, 'content', e.target.value)}
+                    placeholder="개선사항 세부내용을 입력하세요"
+                    rows={3}
+                  />
+                </div>
+              </div>
+            ))}
+            
+            <Button
+              type="button"
+              variant="outline"
+              onClick={addImprovement}
+              className="w-full flex items-center space-x-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>개선사항 추가</span>
+            </Button>
           </CardContent>
         </Card>
 
