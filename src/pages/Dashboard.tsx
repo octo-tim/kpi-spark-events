@@ -10,7 +10,7 @@ import { useEvents } from '@/hooks/useEvents'
 
 const Dashboard = () => {
   const { toast } = useToast()
-  const { events, loading, fetchEventsByMonth } = useEvents()
+  const { events, loading, fetchEventsByMonth, fetchEventsByQuarter } = useEvents()
   const [periodFilter, setPeriodFilter] = useState('monthly')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -131,6 +131,9 @@ const Dashboard = () => {
       if (period === 'monthly' && start) {
         const [year, month] = start.split('-')
         filteredEvents = await fetchEventsByMonth(year, month)
+      } else if (period === 'quarterly' && start) {
+        const [year, quarter] = start.split('-Q')
+        filteredEvents = await fetchEventsByQuarter(year, quarter)
       } else {
         // 다른 기간은 추후 구현
         filteredEvents = events
