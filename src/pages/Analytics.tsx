@@ -630,14 +630,14 @@ ${filteredStats.message}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <KPICard
           title="총 이벤트"
-          value={filteredStats?.totalEvents || 36}
+          value={filteredStats?.totalEvents || 0}
           unit="개"
           trend="up"
           trendValue={12}
         />
         <KPICard
           title="총 계약건수"
-          value={filteredStats?.totalContracts || 335}
+          value={filteredStats?.totalContracts || 0}
           unit="건"
           trend="up"
           trendValue={8}
