@@ -57,30 +57,84 @@ const Analytics = () => {
   const filterAnalyticsData = (period: string, param1: string, param2: string, param3: string) => {
     console.log('Analytics filtering:', { period, param1, param2, param3 })
     
+    let filteredEvents = []
+    
     if (period === 'monthly') {
       const year = param1
       const month = param2
-      setFilteredStats({
-        message: `${year}년 ${parseInt(month)}월 분석 데이터로 필터링됨`,
-        totalEvents: Math.floor(Math.random() * 15) + 5, // 5-20 랜덤
-        totalContracts: Math.floor(Math.random() * 200) + 100 // 100-300 랜덤
+      
+      // 해당 월의 실제 이벤트 필터링
+      filteredEvents = allEvents.filter(event => {
+        const eventStart = new Date(event.startDate)
+        const eventYear = eventStart.getFullYear().toString()
+        const eventMonth = (eventStart.getMonth() + 1).toString().padStart(2, '0')
+        return eventYear === year && eventMonth === month
       })
+      
+      // 실제 데이터 계산
+      const totalContracts = filteredEvents.reduce((sum, event) => sum + event.actualContracts, 0)
+      const totalSqm = filteredEvents.reduce((sum, event) => sum + event.actualSqm, 0)
+      
+      setFilteredStats({
+        message: `${year}년 ${parseInt(month)}월 분석 데이터 (${filteredEvents.length}개 이벤트)`,
+        totalEvents: filteredEvents.length,
+        totalContracts: totalContracts,
+        totalSqm: totalSqm,
+        filteredEventData: filteredEvents
+      })
+      
     } else if (period === 'quarterly') {
       const year = param1
       const quarter = param3
+      
+      // 분기별 월 범위 계산
+      const quarterMonths = {
+        '1': ['01', '02', '03'],
+        '2': ['04', '05', '06'],
+        '3': ['07', '08', '09'],
+        '4': ['10', '11', '12']
+      }
+      
+      filteredEvents = allEvents.filter(event => {
+        const eventStart = new Date(event.startDate)
+        const eventYear = eventStart.getFullYear().toString()
+        const eventMonth = (eventStart.getMonth() + 1).toString().padStart(2, '0')
+        return eventYear === year && quarterMonths[quarter].includes(eventMonth)
+      })
+      
+      const totalContracts = filteredEvents.reduce((sum, event) => sum + event.actualContracts, 0)
+      const totalSqm = filteredEvents.reduce((sum, event) => sum + event.actualSqm, 0)
       const quarterNames = ['', '1분기', '2분기', '3분기', '4분기']
+      
       setFilteredStats({
-        message: `${year}년 ${quarterNames[parseInt(quarter)]} 분석 데이터로 필터링됨`,
-        totalEvents: Math.floor(Math.random() * 30) + 20, // 20-50 랜덤
-        totalContracts: Math.floor(Math.random() * 300) + 200 // 200-500 랜덤
+        message: `${year}년 ${quarterNames[parseInt(quarter)]} 분석 데이터 (${filteredEvents.length}개 이벤트)`,
+        totalEvents: filteredEvents.length,
+        totalContracts: totalContracts,
+        totalSqm: totalSqm,
+        filteredEventData: filteredEvents
       })
+      
     } else if (period === 'custom' && param1 && param2) {
-      setFilteredStats({
-        message: `${param1}부터 ${param2}까지 분석 데이터로 필터링됨`,
-        totalEvents: Math.floor(Math.random() * 25) + 10, // 10-35 랜덤
-        totalContracts: Math.floor(Math.random() * 250) + 150 // 150-400 랜덤
+      const startDate = new Date(param1)
+      const endDate = new Date(param2)
+      
+      filteredEvents = allEvents.filter(event => {
+        const eventStart = new Date(event.startDate)
+        const eventEnd = new Date(event.endDate)
+        return (eventStart <= endDate && eventEnd >= startDate)
       })
-    } else if (period !== 'custom') {
+      
+      const totalContracts = filteredEvents.reduce((sum, event) => sum + event.actualContracts, 0)
+      const totalSqm = filteredEvents.reduce((sum, event) => sum + event.actualSqm, 0)
+      
+      setFilteredStats({
+        message: `${param1}부터 ${param2}까지 분석 데이터 (${filteredEvents.length}개 이벤트)`,
+        totalEvents: filteredEvents.length,
+        totalContracts: totalContracts,
+        totalSqm: totalSqm,
+        filteredEventData: filteredEvents
+      })
+    } else {
       setFilteredStats(null)
     }
   }
@@ -605,19 +659,29 @@ ${filteredStats.message}
       {/* 이벤트별 상세 분석 */}
       <Card>
         <CardHeader>
-          <CardTitle>이벤트별 상세분석</CardTitle>
+          <CardTitle>
+            이벤트별 상세분석
+            {filteredStats && filteredStats.filteredEventData && (
+              <span className="text-sm font-normal text-muted-foreground ml-2">
+                ({filteredStats.filteredEventData.length}개 이벤트)
+              </span>
+            )}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-            {[
-              { name: '신혼가구 타겟 라이브 쇼핑', type: '라이브커머스', contracts: 32, estimates: 95, sqm: 960, efficiency: 82, costPerSqm: 15625 },
-              { name: '서울 베이비&키즈 페어 2024', type: '베이비페어', contracts: 95, estimates: 215, sqm: 2850, efficiency: 88, costPerSqm: 10000 },
-              { name: '분당 신도시 입주박람회', type: '입주박람회', contracts: 35, estimates: 85, sqm: 1200, efficiency: 75, costPerSqm: 10000 }
-            ].map((event) => (
-              <div key={event.name} className="p-4 border border-border rounded-lg">
+            {(filteredStats && filteredStats.filteredEventData && filteredStats.filteredEventData.length > 0 
+              ? filteredStats.filteredEventData 
+              : [
+                { title: '신혼가구 타겟 라이브 쇼핑', type: '라이브커머스', actualContracts: 32, actualEstimates: 95, actualSqm: 960, efficiency: 82, totalCost: 15000000 },
+                { title: '서울 베이비&키즈 페어 2024', type: '베이비페어', actualContracts: 95, actualEstimates: 215, actualSqm: 2850, efficiency: 88, totalCost: 28500000 },
+                { title: '분당 신도시 입주박람회', type: '입주박람회', actualContracts: 35, actualEstimates: 85, actualSqm: 1200, efficiency: 75, totalCost: 12000000 }
+              ]
+            ).map((event, index) => (
+              <div key={event.title || event.id || index} className="p-4 border border-border rounded-lg">
                 <div className="flex justify-between items-center mb-3">
                   <div>
-                    <h4 className="font-semibold">{event.name}</h4>
+                    <h4 className="font-semibold">{event.title}</h4>
                     <p className="text-sm text-muted-foreground">{event.type}</p>
                   </div>
                   <Badge 
@@ -633,27 +697,32 @@ ${filteredStats.message}
                 <div className="grid grid-cols-5 gap-4 text-sm">
                   <div>
                     <p className="text-muted-foreground">계약건수</p>
-                    <p className="font-semibold">{event.contracts}건</p>
+                    <p className="font-semibold">{event.actualContracts}건</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">견적건수</p>
-                    <p className="font-semibold">{event.estimates}건</p>
+                    <p className="font-semibold">{event.actualEstimates}건</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">계약장수</p>
-                    <p className="font-semibold">{event.sqm.toLocaleString()}장</p>
+                    <p className="font-semibold">{event.actualSqm.toLocaleString()}장</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">전환율</p>
-                    <p className="font-semibold">{((event.contracts / event.estimates) * 100).toFixed(1)}%</p>
+                    <p className="font-semibold">{((event.actualContracts / event.actualEstimates) * 100).toFixed(1)}%</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">장당비용</p>
-                    <p className="font-semibold">{event.costPerSqm.toLocaleString()}원/장</p>
+                    <p className="font-semibold">{Math.round(event.totalCost / event.actualSqm).toLocaleString()}원/장</p>
                   </div>
                 </div>
               </div>
             ))}
+            {filteredStats && filteredStats.filteredEventData && filteredStats.filteredEventData.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                선택한 기간에 해당하는 이벤트가 없습니다.
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
