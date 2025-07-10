@@ -253,7 +253,7 @@ const EventEdit = () => {
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold text-foreground">이벤트 수정</h1>
+          <h1 className="text-3xl font-bold text-foreground">보고서작성</h1>
           <p className="text-muted-foreground mt-2">
             이벤트 정보와 실적 데이터를 업데이트하세요
           </p>
