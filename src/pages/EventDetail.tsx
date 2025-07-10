@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -14,33 +14,51 @@ import {
   TrendingUp,
   TrendingDown,
   FileText,
-  Phone
+  Phone,
+  Loader2
 } from 'lucide-react'
 import { EventData } from '@/components/EventCard'
+import { useEvents, type Event } from '@/hooks/useEvents'
 
 const EventDetail = () => {
   const { id } = useParams()
+  const { events, loading } = useEvents()
+  const [currentEvent, setCurrentEvent] = useState<Event | null>(null)
 
-  // 샘플 데이터 - 추후 Supabase 연동 시 실제 데이터로 교체
-  const event: EventData = {
-    id: id || '1',
-    title: '신혼가구 타겟 라이브 쇼핑',
-    type: '라이브커머스',
-    status: '진행중',
-    startDate: '2024-01-15',
-    endDate: '2024-01-20',
-    partner: '네이버 쇼핑라이브',
-    targetContracts: 50,
-    actualContracts: 32,
-    targetEstimates: 120,
-    actualEstimates: 95,
-    targetSqm: 1500,
-    actualSqm: 960,
-    description: '신혼부부를 대상으로 한 맞춤형 인테리어 라이브 쇼핑 이벤트입니다. 합리적인 가격과 품질 좋은 제품으로 새로운 보금자리를 꾸밀 수 있도록 도와드립니다.',
-    location: '온라인 라이브 스튜디오',
+  useEffect(() => {
+    if (events.length > 0 && id) {
+      const event = events.find(e => e.id === id)
+      setCurrentEvent(event || null)
+    }
+  }, [events, id])
+
+  // 로딩 상태 처리
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <Loader2 className="w-8 h-8 animate-spin" />
+        <span className="ml-2">이벤트 정보를 불러오는 중...</span>
+      </div>
+    )
   }
 
-  const getStatusColor = (status: typeof event.status) => {
+  // 이벤트를 찾지 못한 경우
+  if (!currentEvent) {
+    return (
+      <div className="text-center py-12">
+        <h2 className="text-2xl font-bold text-foreground mb-2">이벤트를 찾을 수 없습니다</h2>
+        <p className="text-muted-foreground mb-4">요청하신 이벤트가 존재하지 않거나 삭제되었습니다.</p>
+        <Button asChild>
+          <Link to="/events">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            목록으로 돌아가기
+          </Link>
+        </Button>
+      </div>
+    )
+  }
+
+  const getStatusColor = (status: string) => {
     switch (status) {
       case '계획중': return 'bg-muted text-muted-foreground'
       case '진행중': return 'bg-primary text-primary-foreground'
@@ -50,7 +68,7 @@ const EventDetail = () => {
     }
   }
 
-  const getTypeColor = (type: typeof event.type) => {
+  const getTypeColor = (type: string) => {
     switch (type) {
       case '라이브커머스': return 'bg-blue-100 text-blue-800 border-blue-200'
       case '베이비페어': return 'bg-pink-100 text-pink-800 border-pink-200'
@@ -61,30 +79,43 @@ const EventDetail = () => {
   }
 
   const calculateRate = (actual: number, target: number) => {
+    if (target === 0) return 0
     return Math.round((actual / target) * 100)
   }
+
+  // 장당비용 계산
+  const costPerSqm = currentEvent.actual_sqm > 0 
+    ? Math.round((currentEvent.total_cost || 0) / currentEvent.actual_sqm)
+    : 0
 
   const kpiData = [
     {
       title: '계약건수',
-      target: event.targetContracts,
-      actual: event.actualContracts || 0,
+      target: currentEvent.target_contracts,
+      actual: currentEvent.actual_contracts || 0,
       unit: '건',
-      rate: calculateRate(event.actualContracts || 0, event.targetContracts)
+      rate: calculateRate(currentEvent.actual_contracts || 0, currentEvent.target_contracts)
     },
     {
       title: '견적건수',
-      target: event.targetEstimates,
-      actual: event.actualEstimates || 0,
+      target: currentEvent.target_estimates,
+      actual: currentEvent.actual_estimates || 0,
       unit: '건',
-      rate: calculateRate(event.actualEstimates || 0, event.targetEstimates)
+      rate: calculateRate(currentEvent.actual_estimates || 0, currentEvent.target_estimates)
     },
     {
       title: '계약장수',
-      target: event.targetSqm,
-      actual: event.actualSqm || 0,
+      target: currentEvent.target_sqm,
+      actual: currentEvent.actual_sqm || 0,
       unit: '장',
-      rate: calculateRate(event.actualSqm || 0, event.targetSqm)
+      rate: calculateRate(currentEvent.actual_sqm || 0, currentEvent.target_sqm)
+    },
+    {
+      title: '장당비용',
+      target: null, // 장당비용은 목표값이 없으므로 null
+      actual: costPerSqm,
+      unit: '원/장',
+      rate: null // 달성률도 없음
     }
   ]
 
@@ -101,18 +132,18 @@ const EventDetail = () => {
           </Button>
           <div>
             <div className="flex items-center space-x-2 mb-2">
-              <Badge className={getTypeColor(event.type)}>
-                {event.type}
+              <Badge className={getTypeColor(currentEvent.type)}>
+                {currentEvent.type}
               </Badge>
-              <Badge className={getStatusColor(event.status)}>
-                {event.status}
+              <Badge className={getStatusColor(currentEvent.status)}>
+                {currentEvent.status}
               </Badge>
             </div>
-            <h1 className="text-3xl font-bold text-foreground">{event.title}</h1>
+            <h1 className="text-3xl font-bold text-foreground">{currentEvent.title}</h1>
           </div>
         </div>
         <Button asChild>
-          <Link to={`/events/${event.id}/edit`}>
+          <Link to={`/events/${currentEvent.id}/edit`}>
             <Edit className="w-4 h-4 mr-2" />
             수정
           </Link>
@@ -134,26 +165,24 @@ const EventDetail = () => {
                   <div>
                     <div className="font-medium">기간</div>
                     <div className="text-sm text-muted-foreground">
-                      {event.startDate} ~ {event.endDate}
+                      {currentEvent.start_date} ~ {currentEvent.end_date}
                     </div>
                   </div>
                 </div>
                 
-                {event.location && (
-                  <div className="flex items-center space-x-3">
-                    <MapPin className="w-5 h-5 text-muted-foreground" />
-                    <div>
-                      <div className="font-medium">장소</div>
-                      <div className="text-sm text-muted-foreground">{event.location}</div>
-                    </div>
+                <div className="flex items-center space-x-3">
+                  <MapPin className="w-5 h-5 text-muted-foreground" />
+                  <div>
+                    <div className="font-medium">장소</div>
+                    <div className="text-sm text-muted-foreground">온라인 라이브 스튜디오</div>
                   </div>
-                )}
+                </div>
                 
                 <div className="flex items-center space-x-3">
                   <Users className="w-5 h-5 text-muted-foreground" />
                   <div>
                     <div className="font-medium">제휴 파트너</div>
-                    <div className="text-sm text-muted-foreground">{event.partner}</div>
+                    <div className="text-sm text-muted-foreground">{currentEvent.partner}</div>
                   </div>
                 </div>
 
@@ -166,12 +195,13 @@ const EventDetail = () => {
                 </div>
               </div>
 
-              {event.description && (
-                <div className="pt-4 border-t border-border">
-                  <h4 className="font-medium mb-2">이벤트 설명</h4>
-                  <p className="text-muted-foreground leading-relaxed">{event.description}</p>
-                </div>
-              )}
+              <div className="pt-4 border-t border-border">
+                <h4 className="font-medium mb-2">이벤트 설명</h4>
+                <p className="text-muted-foreground leading-relaxed">
+                  신혼부부를 대상으로 한 맞춤형 인테리어 라이브 쇼핑 이벤트입니다. 
+                  합리적인 가격과 품질 좋은 제품으로 새로운 보금자리를 꾸밀 수 있도록 도와드립니다.
+                </p>
+              </div>
             </CardContent>
           </Card>
 
@@ -231,18 +261,33 @@ const EventDetail = () => {
                   <div className="flex justify-between items-center">
                     <span className="font-medium">{kpi.title}</span>
                     <span className="text-sm text-muted-foreground">
-                      {kpi.actual}/{kpi.target}{kpi.unit}
+                      {kpi.title === '장당비용' ? (
+                        `${kpi.actual.toLocaleString()}${kpi.unit}`
+                      ) : (
+                        `${kpi.actual}/${kpi.target}${kpi.unit}`
+                      )}
                     </span>
                   </div>
-                  <Progress value={kpi.rate} className="h-2" />
-                  <div className="text-right">
-                    <span className={`text-sm font-medium ${
-                      kpi.rate >= 100 ? 'text-success' :
-                      kpi.rate >= 80 ? 'text-warning' : 'text-danger'
-                    }`}>
-                      달성률 {kpi.rate}%
-                    </span>
-                  </div>
+                  {kpi.rate !== null && (
+                    <>
+                      <Progress value={kpi.rate} className="h-2" />
+                      <div className="text-right">
+                        <span className={`text-sm font-medium ${
+                          kpi.rate >= 100 ? 'text-success' :
+                          kpi.rate >= 80 ? 'text-warning' : 'text-danger'
+                        }`}>
+                          달성률 {kpi.rate}%
+                        </span>
+                      </div>
+                    </>
+                  )}
+                  {kpi.title === '장당비용' && (
+                    <div className="text-right">
+                      <span className="text-sm font-medium text-muted-foreground">
+                        장당 평균 비용
+                      </span>
+                    </div>
+                  )}
                 </div>
               ))}
             </CardContent>
@@ -263,7 +308,7 @@ const EventDetail = () => {
                 보고서 생성
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
-                <Link to={`/events/${event.id}/edit`}>
+                <Link to={`/events/${currentEvent.id}/edit`}>
                   <Edit className="w-4 h-4 mr-2" />
                   이벤트 수정
                 </Link>
