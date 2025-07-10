@@ -125,36 +125,111 @@ const Dashboard = () => {
       // 짧은 딜레이로 로딩 상태 표시 (UX 개선)
       await new Promise(resolve => setTimeout(resolve, 300))
 
-      let multiplier = 1
+      let monthlyData
       
-      // 기간별 데이터 조정 배율 설정
+      // 월별로 실제 다른 데이터 생성
       if (period === 'monthly' && start) {
-        multiplier = 0.8 // 월간은 80%
+        const [year, month] = start.split('-')
+        const monthNum = parseInt(month)
+        
+        // 월별 시즌성 반영 (1월=높음, 7-8월=낮음, 12월=높음)
+        const seasonality = monthNum <= 3 || monthNum >= 11 ? 1.2 : 
+                          monthNum >= 7 && monthNum <= 8 ? 0.7 : 1.0
+        
+        // 월별 성장률 (전년 대비)
+        const growthRate = 1 + (monthNum * 0.02) // 매월 2% 성장
+        
+        monthlyData = {
+          kpi: {
+            totalContracts: Math.round(180 * seasonality * growthRate + Math.random() * 20),
+            totalEstimates: Math.round(420 * seasonality * growthRate + Math.random() * 30),
+            totalSqm: Math.round(11000 * seasonality * growthRate + Math.random() * 500),
+            monthlyRevenue: Math.round(6500000 * seasonality * growthRate + Math.random() * 1000000)
+          },
+          channels: [
+            {
+              channel: '라이브커머스',
+              contracts: Math.round(110 * seasonality * growthRate + Math.random() * 15),
+              estimates: Math.round(250 * seasonality * growthRate + Math.random() * 20),
+              sqm: Math.round(3200 * seasonality * growthRate + Math.random() * 200),
+              totalCost: Math.round(48000000 * seasonality * growthRate),
+              costPerSqm: 15000
+            },
+            {
+              channel: '베이비페어',
+              contracts: Math.round(67 * seasonality * growthRate + Math.random() * 10),
+              estimates: Math.round(140 * seasonality * growthRate + Math.random() * 15),
+              sqm: Math.round(2300 * seasonality * growthRate + Math.random() * 150),
+              totalCost: Math.round(34500000 * seasonality * growthRate),
+              costPerSqm: 15000
+            },
+            {
+              channel: '입주박람회',
+              contracts: Math.round(51 * seasonality * growthRate + Math.random() * 8),
+              estimates: Math.round(115 * seasonality * growthRate + Math.random() * 12),
+              sqm: Math.round(2100 * seasonality * growthRate + Math.random() * 100),
+              totalCost: Math.round(31500000 * seasonality * growthRate),
+              costPerSqm: 15000
+            },
+            {
+              channel: '인플루언서공구',
+              contracts: Math.round(26 * seasonality * growthRate + Math.random() * 5),
+              estimates: Math.round(68 * seasonality * growthRate + Math.random() * 8),
+              sqm: Math.round(1100 * seasonality * growthRate + Math.random() * 80),
+              totalCost: Math.round(16500000 * seasonality * growthRate),
+              costPerSqm: 15000
+            }
+          ]
+        }
       } else if (period === 'quarterly' && start) {
-        multiplier = 1.2 // 분기별은 120%
+        // 분기별 데이터
+        const quarterMultiplier = start.includes('Q1') ? 1.1 : 
+                                start.includes('Q2') ? 0.9 : 
+                                start.includes('Q3') ? 0.8 : 1.3
+        
+        monthlyData = {
+          kpi: {
+            totalContracts: Math.round(kpiData.totalContracts.current * quarterMultiplier),
+            totalEstimates: Math.round(kpiData.totalEstimates.current * quarterMultiplier),
+            totalSqm: Math.round(kpiData.totalSqm.current * quarterMultiplier),
+            monthlyRevenue: Math.round(kpiData.monthlyRevenue.current * quarterMultiplier)
+          },
+          channels: channelPerformanceData.map(channel => ({
+            ...channel,
+            contracts: Math.round(channel.contracts * quarterMultiplier),
+            estimates: Math.round(channel.estimates * quarterMultiplier),
+            sqm: Math.round(channel.sqm * quarterMultiplier),
+            totalCost: Math.round(channel.totalCost * quarterMultiplier),
+            costPerSqm: channel.costPerSqm
+          }))
+        }
       } else if (period === 'custom' && start && end) {
-        multiplier = 0.9 // 사용자 정의는 90%
+        // 사용자 정의 기간
+        const daysDiff = Math.ceil((new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24))
+        const customMultiplier = Math.min(daysDiff / 30, 1.5) // 최대 1.5배
+        
+        monthlyData = {
+          kpi: {
+            totalContracts: Math.round(kpiData.totalContracts.current * customMultiplier),
+            totalEstimates: Math.round(kpiData.totalEstimates.current * customMultiplier),
+            totalSqm: Math.round(kpiData.totalSqm.current * customMultiplier),
+            monthlyRevenue: Math.round(kpiData.monthlyRevenue.current * customMultiplier)
+          },
+          channels: channelPerformanceData.map(channel => ({
+            ...channel,
+            contracts: Math.round(channel.contracts * customMultiplier),
+            estimates: Math.round(channel.estimates * customMultiplier),
+            sqm: Math.round(channel.sqm * customMultiplier),
+            totalCost: Math.round(channel.totalCost * customMultiplier),
+            costPerSqm: channel.costPerSqm
+          }))
+        }
       } else {
         return
       }
 
-      // 필터링된 KPI 데이터 생성
-      const filteredKpiData = {
-        totalContracts: Math.round(kpiData.totalContracts.current * multiplier),
-        totalEstimates: Math.round(kpiData.totalEstimates.current * multiplier),
-        totalSqm: Math.round(kpiData.totalSqm.current * multiplier),
-        monthlyRevenue: Math.round(kpiData.monthlyRevenue.current * multiplier)
-      }
-
-      // 필터링된 채널 데이터 생성
-      const filteredChannelData = channelPerformanceData.map(channel => ({
-        ...channel,
-        contracts: Math.round(channel.contracts * multiplier),
-        estimates: Math.round(channel.estimates * multiplier),
-        sqm: Math.round(channel.sqm * multiplier),
-        totalCost: Math.round(channel.totalCost * multiplier),
-        costPerSqm: Math.round(channel.totalCost * multiplier / (channel.sqm * multiplier))
-      }))
+      const filteredKpiData = monthlyData.kpi
+      const filteredChannelData = monthlyData.channels
 
       // 필터링된 이벤트 데이터
       const filteredEvents = recentEvents.filter(event => {
