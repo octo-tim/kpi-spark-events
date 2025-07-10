@@ -63,7 +63,7 @@ export const useEvents = () => {
     }
   }
 
-  // 기간별 이벤트 조회
+  // 기간별 이벤트 조회 - 시작일이 검색 기간 내에 있는 이벤트만 조회
   const fetchEventsByPeriod = async (startDate: string, endDate: string) => {
     try {
       setLoading(true)
@@ -72,7 +72,8 @@ export const useEvents = () => {
       const { data, error } = await supabase
         .from('events')
         .select('*')
-        .or(`start_date.lte.${endDate},end_date.gte.${startDate}`)
+        .gte('start_date', startDate)
+        .lte('start_date', endDate)
         .order('start_date', { ascending: false })
 
       if (error) {
@@ -149,7 +150,8 @@ export const useEvents = () => {
       const { data, error } = await supabase
         .from('events')
         .select('*')
-        .or(`start_date.lte.${endDate},end_date.gte.${startDate}`)
+        .gte('start_date', startDate)
+        .lte('start_date', endDate)
         .order('start_date', { ascending: false })
 
       if (error) {
