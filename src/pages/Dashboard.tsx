@@ -22,12 +22,6 @@ const Dashboard = () => {
   const filterData = (period: string, start: string, end: string) => {
     console.log('Filtering data:', { period, start, end })
     
-    // 빈 값 체크
-    if (!period || (period === 'custom' && (!start || !end))) {
-      setFilteredData(null)
-      return
-    }
-    
     // 기간에 따른 데이터 필터링 시뮬레이션
     if (period === 'monthly' && start) {
       const monthData = start.split('-')
@@ -53,6 +47,11 @@ const Dashboard = () => {
         message: `${start}부터 ${end}까지 데이터로 필터링됨`,
         contracts: Math.round(kpiData.totalContracts.current * 0.9)
       })
+    } else {
+      // 조건에 맞지 않는 경우에만 null로 설정
+      if (period === 'custom' && (!start || !end)) {
+        setFilteredData(null)
+      }
     }
   }
 
