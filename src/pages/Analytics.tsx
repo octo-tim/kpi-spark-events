@@ -1,7 +1,10 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Input } from '@/components/ui/input'
+import KPICard from '@/components/KPICard'
 import { 
   BarChart3, 
   TrendingUp, 
@@ -15,6 +18,8 @@ import {
 } from 'lucide-react'
 
 const Analytics = () => {
+  const [periodFilter, setPeriodFilter] = useState('monthly')
+  
   // 샘플 데이터 - 추후 Supabase 연동 시 실제 데이터로 교체
   const channelStats = [
     {
@@ -99,12 +104,24 @@ const Analytics = () => {
           </p>
         </div>
         <div className="flex items-center space-x-4">
-          <select className="px-3 py-2 border border-border rounded-md bg-background text-foreground">
-            <option value="monthly">월별</option>
-            <option value="quarterly">분기별</option>
-            <option value="custom">기간설정</option>
-          </select>
-          <Button>
+          <Select value={periodFilter} onValueChange={setPeriodFilter}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="조회기간" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="monthly">월간</SelectItem>
+              <SelectItem value="quarterly">분기별</SelectItem>
+              <SelectItem value="custom">기간설정</SelectItem>
+            </SelectContent>
+          </Select>
+          {periodFilter === 'custom' && (
+            <div className="flex items-center space-x-2">
+              <Input type="date" className="w-40" />
+              <span>~</span>
+              <Input type="date" className="w-40" />
+            </div>
+          )}
+          <Button onClick={() => window.print()}>
             <Download className="w-4 h-4 mr-2" />
             리포트 다운로드
           </Button>
@@ -113,95 +130,84 @@ const Analytics = () => {
 
       {/* 전체 요약 */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">총 이벤트</p>
-                <p className="text-2xl font-bold">36개</p>
-              </div>
-              <Calendar className="w-8 h-8 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">총 계약건수</p>
-                <p className="text-2xl font-bold">335건</p>
-              </div>
-              <Target className="w-8 h-8 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">평균 달성률</p>
-                <p className="text-2xl font-bold">76.8%</p>
-              </div>
-              <BarChart3 className="w-8 h-8 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">장당비용</p>
-                <p className="text-2xl font-bold">2,536원</p>
-              </div>
-              <DollarSign className="w-8 h-8 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
+        <KPICard
+          title="총 이벤트"
+          value={36}
+          unit="개"
+          trend="up"
+          trendValue={12}
+        />
+        <KPICard
+          title="총 계약건수"
+          value={335}
+          unit="건"
+          trend="up"
+          trendValue={8}
+        />
+        <KPICard
+          title="평균 달성률"
+          value={76.8}
+          unit="%"
+          trend="down"
+          trendValue={-3}
+        />
+        <KPICard
+          title="장당비용"
+          value={12500}
+          unit="원/장"
+          trend="down"
+          trendValue={-8}
+        />
       </div>
 
-      {/* 채널별 상세 분석 */}
+      {/* 이벤트별 상세 분석 */}
       <Card>
         <CardHeader>
-          <CardTitle>채널별 상세 분석</CardTitle>
+          <CardTitle>이벤트별 상세분석</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-            {channelStats.map((channel, index) => (
-              <div key={index} className="border rounded-lg p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <h3 className="text-lg font-semibold">{channel.channel}</h3>
-                    <Badge variant="secondary">
-                      {channel.completedEvents}/{channel.totalEvents} 완료
-                    </Badge>
+            {[
+              { name: '신혼가구 타겟 라이브 쇼핑', type: '라이브커머스', contracts: 32, estimates: 95, sqm: 960, efficiency: 82, costPerSqm: 15625 },
+              { name: '서울 베이비&키즈 페어 2024', type: '베이비페어', contracts: 95, estimates: 215, sqm: 2850, efficiency: 88, costPerSqm: 10000 },
+              { name: '분당 신도시 입주박람회', type: '입주박람회', contracts: 35, estimates: 85, sqm: 1200, efficiency: 75, costPerSqm: 10000 }
+            ].map((event) => (
+              <div key={event.name} className="p-4 border border-border rounded-lg">
+                <div className="flex justify-between items-center mb-3">
+                  <div>
+                    <h4 className="font-semibold">{event.name}</h4>
+                    <p className="text-sm text-muted-foreground">{event.type}</p>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    {getTrendIcon(channel.trend)}
-                    <span className={`text-sm font-medium ${getTrendColor(channel.trend)}`}>
-                      {channel.trendValue > 0 ? '+' : ''}{channel.trendValue}%
-                    </span>
-                  </div>
+                  <Badge 
+                    className={
+                      event.efficiency >= 85 ? "bg-success text-success-foreground" :
+                      event.efficiency >= 70 ? "bg-warning text-warning-foreground" :
+                      "bg-danger text-danger-foreground"
+                    }
+                  >
+                    효율성 {event.efficiency}%
+                  </Badge>
                 </div>
-                
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">{channel.totalContracts}</div>
-                    <div className="text-sm text-muted-foreground">계약건수</div>
+                <div className="grid grid-cols-5 gap-4 text-sm">
+                  <div>
+                    <p className="text-muted-foreground">계약건수</p>
+                    <p className="font-semibold">{event.contracts}건</p>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold">{channel.totalEstimates}</div>
-                    <div className="text-sm text-muted-foreground">견적건수</div>
+                  <div>
+                    <p className="text-muted-foreground">견적건수</p>
+                    <p className="font-semibold">{event.estimates}건</p>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold">{channel.totalSqm.toLocaleString()}</div>
-                    <div className="text-sm text-muted-foreground">계약장수</div>
+                  <div>
+                    <p className="text-muted-foreground">계약장수</p>
+                    <p className="font-semibold">{event.sqm.toLocaleString()}장</p>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold">{channel.avgContractRate}%</div>
-                    <div className="text-sm text-muted-foreground">평균 달성률</div>
+                  <div>
+                    <p className="text-muted-foreground">전환율</p>
+                    <p className="font-semibold">{((event.contracts / event.estimates) * 100).toFixed(1)}%</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">장당비용</p>
+                    <p className="font-semibold">{event.costPerSqm.toLocaleString()}원/장</p>
                   </div>
                 </div>
               </div>
@@ -326,29 +332,31 @@ const Analytics = () => {
           </CardContent>
         </Card>
 
-        {/* 상위 파트너 */}
+        {/* 성과(계약장수) 상위 이벤트 */}
         <Card>
           <CardHeader>
-            <CardTitle>상위 성과 파트너</CardTitle>
+            <CardTitle>성과(계약장수) 상위 이벤트</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {topPerformers.map((partner, index) => (
-                <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+              {[
+                { name: '서울 베이비&키즈 페어 2024', sqm: 2850, change: 18 },
+                { name: '분당 신도시 입주박람회', sqm: 1200, change: -5 },
+                { name: '신혼가구 타겟 라이브 쇼핑', sqm: 960, change: 12 },
+                { name: '인플루언서 협업 프로모션', sqm: 750, change: 8 }
+              ].map((event, index) => (
+                <div key={event.name} className="flex items-center justify-between p-3 border border-border rounded-lg">
                   <div className="flex items-center space-x-3">
                     <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
                       {index + 1}
                     </div>
-                    <div>
-                      <div className="font-medium">{partner.partner}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {partner.contracts}건 계약
-                      </div>
-                    </div>
+                    <span className="font-medium">{event.name}</span>
                   </div>
                   <div className="text-right">
-                    <div className="font-bold text-success">{partner.rate}%</div>
-                    <div className="text-xs text-muted-foreground">달성률</div>
+                    <p className="font-semibold">{event.sqm.toLocaleString()}장</p>
+                    <p className={`text-xs ${event.change >= 0 ? 'text-success' : 'text-danger'}`}>
+                      {event.change >= 0 ? '+' : ''}{event.change}%
+                    </p>
                   </div>
                 </div>
               ))}

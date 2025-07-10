@@ -1,9 +1,12 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import KPICard from '@/components/KPICard'
 import EventCard, { EventData } from '@/components/EventCard'
 
 const Dashboard = () => {
+  const [periodFilter, setPeriodFilter] = useState('monthly')
+  
   // 샘플 데이터 - 추후 Supabase 연동 시 실제 데이터로 교체
   const kpiData = {
     totalContracts: { current: 234, target: 300, trend: 'up', trendValue: 12 },
@@ -26,7 +29,9 @@ const Dashboard = () => {
       targetEstimates: 120,
       actualEstimates: 95,
       targetSqm: 1500,
-      actualSqm: 960
+      actualSqm: 960,
+      totalCost: 15000000,
+      costPerSqm: 15625
     },
     {
       id: '2',
@@ -42,7 +47,9 @@ const Dashboard = () => {
       targetEstimates: 200,
       actualEstimates: 215,
       targetSqm: 2400,
-      actualSqm: 2850
+      actualSqm: 2850,
+      totalCost: 28500000,
+      costPerSqm: 10000
     },
     {
       id: '3',
@@ -55,15 +62,17 @@ const Dashboard = () => {
       partner: '분당신도시개발',
       targetContracts: 35,
       targetEstimates: 85,
-      targetSqm: 1200
+      targetSqm: 1200,
+      totalCost: 12000000,
+      costPerSqm: 10000
     }
   ]
 
   const channelPerformanceData = [
-    { channel: '라이브커머스', contracts: 145, estimates: 320, sqm: 4200 },
-    { channel: '베이비페어', contracts: 89, estimates: 180, sqm: 3100 },
-    { channel: '입주박람회', contracts: 67, estimates: 150, sqm: 2800 },
-    { channel: '인플루언서공구', contracts: 34, estimates: 90, sqm: 1500 }
+    { channel: '라이브커머스', contracts: 145, estimates: 320, sqm: 4200, totalCost: 63000000, costPerSqm: 15000 },
+    { channel: '베이비페어', contracts: 89, estimates: 180, sqm: 3100, totalCost: 46500000, costPerSqm: 15000 },
+    { channel: '입주박람회', contracts: 67, estimates: 150, sqm: 2800, totalCost: 42000000, costPerSqm: 15000 },
+    { channel: '인플루언서공구', contracts: 34, estimates: 90, sqm: 1500, totalCost: 22500000, costPerSqm: 15000 }
   ]
 
   const monthlyTrendData = [
@@ -81,11 +90,23 @@ const Dashboard = () => {
   return (
     <div className="space-y-8">
       {/* Page Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">대시보드</h1>
-        <p className="text-muted-foreground mt-2">
-          제휴채널별 영업 성과와 주요 지표를 한눈에 확인하세요
-        </p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">외부채널 영업관리</h1>
+          <p className="text-muted-foreground mt-2">
+            제휴채널별 영업 성과와 주요 지표를 한눈에 확인하세요
+          </p>
+        </div>
+        <Select value={periodFilter} onValueChange={setPeriodFilter}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="조회기간" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="monthly">월간</SelectItem>
+            <SelectItem value="quarterly">분기별</SelectItem>
+            <SelectItem value="custom">기간설정</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* KPI Cards */}
@@ -124,21 +145,22 @@ const Dashboard = () => {
       </div>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Channel Performance */}
+      <div className="grid grid-cols-1 gap-6">
+        {/* Channel Cost Per Unit */}
         <Card>
           <CardHeader>
-            <CardTitle>채널별 계약 성과</CardTitle>
+            <CardTitle>채널별 장당비용</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {channelPerformanceData.map((item, index) => {
-                const percentage = (item.contracts / getMaxValue(channelPerformanceData, 'contracts')) * 100
+                const maxCost = Math.max(...channelPerformanceData.map(d => d.costPerSqm))
+                const percentage = (item.costPerSqm / maxCost) * 100
                 return (
                   <div key={item.channel} className="space-y-2">
                     <div className="flex justify-between items-center text-sm">
                       <span className="font-medium">{item.channel}</span>
-                      <span className="text-muted-foreground">{item.contracts}건</span>
+                      <span className="text-muted-foreground">{item.costPerSqm.toLocaleString()}원/장</span>
                     </div>
                     <div className="w-full bg-muted rounded-full h-2">
                       <div 
@@ -146,34 +168,6 @@ const Dashboard = () => {
                         style={{ width: `${percentage}%` }}
                       />
                     </div>
-                  </div>
-                )
-              })}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Monthly Trend */}
-        <Card>
-          <CardHeader>
-            <CardTitle>월별 계약 추이</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {monthlyTrendData.map((item, index) => {
-                const maxContracts = Math.max(...monthlyTrendData.map(d => d.contracts))
-                const height = (item.contracts / maxContracts) * 100
-                return (
-                  <div key={item.month} className="flex items-end space-x-3">
-                    <span className="text-xs text-muted-foreground w-8">{item.month}</span>
-                    <div className="flex-1 flex items-end space-x-1">
-                      <div 
-                        className="bg-gradient-primary rounded-t-sm min-h-[8px] w-full transition-all duration-500"
-                        style={{ height: `${Math.max(height, 10)}%` }}
-                        title={`${item.contracts}건`}
-                      />
-                    </div>
-                    <span className="text-xs font-medium w-8 text-right">{item.contracts}</span>
                   </div>
                 )
               })}
@@ -203,6 +197,10 @@ const Dashboard = () => {
                 <div className="space-y-1">
                   <div className="text-sm font-medium">{channel.sqm.toLocaleString()}장</div>
                   <div className="text-xs text-muted-foreground">계약장수</div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-sm font-medium">{channel.costPerSqm.toLocaleString()}원/장</div>
+                  <div className="text-xs text-muted-foreground">장당비용</div>
                 </div>
               </div>
             ))}

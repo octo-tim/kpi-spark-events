@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
 import { 
   Select,
   SelectContent,
@@ -22,6 +23,7 @@ import {
 const Reports = () => {
   const [filterPeriod, setFilterPeriod] = useState('all')
   const [filterType, setFilterType] = useState('all')
+  const [periodFilter, setPeriodFilter] = useState('monthly')
 
   // 샘플 데이터 - 추후 Supabase 연동 시 실제 데이터로 교체
   const reports = [
@@ -139,10 +141,29 @@ const Reports = () => {
             성과 리포트를 생성하고 다운로드하세요
           </p>
         </div>
-        <Button>
-          <FileText className="w-4 h-4 mr-2" />
-          새 리포트 생성
-        </Button>
+        <div className="flex items-center space-x-4">
+          <Select value={periodFilter} onValueChange={setPeriodFilter}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="조회기간" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="monthly">월간</SelectItem>
+              <SelectItem value="quarterly">분기별</SelectItem>
+              <SelectItem value="custom">기간설정</SelectItem>
+            </SelectContent>
+          </Select>
+          {periodFilter === 'custom' && (
+            <div className="flex items-center space-x-2">
+              <Input type="date" className="w-40" />
+              <span>~</span>
+              <Input type="date" className="w-40" />
+            </div>
+          )}
+          <Button onClick={() => alert('새 리포트 생성 기능이 활성화되었습니다')}>
+            <FileText className="w-4 h-4 mr-2" />
+            새 리포트 생성
+          </Button>
+        </div>
       </div>
 
       {/* Statistics Cards */}
@@ -262,12 +283,12 @@ const Reports = () => {
                   <div className="text-xs text-muted-foreground">달성률</div>
                   
                   <div className="flex space-x-2 mt-4">
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => alert('리포트 보기 기능이 활성화되었습니다')}>
                       <Eye className="w-4 h-4 mr-1" />
                       보기
                     </Button>
                     {report.status === 'completed' && (
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => window.print()}>
                         <Download className="w-4 h-4 mr-1" />
                         다운로드
                       </Button>

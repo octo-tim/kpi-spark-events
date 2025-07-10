@@ -24,6 +24,8 @@ export interface EventData {
   actualEstimates?: number
   targetSqm: number
   actualSqm?: number
+  totalCost?: number
+  costPerSqm?: number
   description?: string
 }
 
@@ -120,7 +122,7 @@ const EventCard = ({ event, className }: EventCardProps) => {
           {event.partner}
         </div>
 
-        <div className="grid grid-cols-3 gap-4 pt-2">
+        <div className="grid grid-cols-4 gap-4 pt-2">
           <div className="text-center">
             <div className="text-xs text-muted-foreground">계약건수</div>
             <div className="font-semibold">
@@ -139,6 +141,14 @@ const EventCard = ({ event, className }: EventCardProps) => {
               {event.actualSqm || 0}/{event.targetSqm}
             </div>
           </div>
+          {event.costPerSqm && (
+            <div className="text-center">
+              <div className="text-xs text-muted-foreground">장당비용</div>
+              <div className="font-semibold">
+                {event.costPerSqm.toLocaleString()}원/장
+              </div>
+            </div>
+          )}
         </div>
       </CardContent>
 

@@ -10,7 +10,7 @@ import EventCreate from "./pages/EventCreate";
 import EventDetail from "./pages/EventDetail";
 import EventEdit from "./pages/EventEdit";
 import Analytics from "./pages/Analytics";
-import Channels from "./pages/Channels";
+
 import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 
@@ -30,7 +30,7 @@ const App = () => (
             <Route path="/events/:id" element={<EventDetail />} />
             <Route path="/events/:id/edit" element={<EventEdit />} />
             <Route path="/analytics" element={<Analytics />} />
-            <Route path="/channels" element={<Channels />} />
+            
             <Route path="/reports" element={<Reports />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
