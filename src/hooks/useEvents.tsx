@@ -20,6 +20,12 @@ export interface Event {
   efficiency: number
   created_at: string
   updated_at: string
+  promotion_info?: any
+  previous_improvements?: string
+  execution_plan?: string
+  customer_feedback?: string
+  event_review?: string
+  future_improvements?: string
 }
 
 export const useEvents = () => {

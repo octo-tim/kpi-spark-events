@@ -56,10 +56,16 @@ export type Database = {
           actual_estimates: number | null
           actual_sqm: number | null
           created_at: string
+          customer_feedback: string | null
           efficiency: number | null
           end_date: string
+          event_review: string | null
+          execution_plan: string | null
+          future_improvements: string | null
           id: string
           partner: string | null
+          previous_improvements: string | null
+          promotion_info: Json | null
           start_date: string
           status: string
           target_contracts: number | null
@@ -75,10 +81,16 @@ export type Database = {
           actual_estimates?: number | null
           actual_sqm?: number | null
           created_at?: string
+          customer_feedback?: string | null
           efficiency?: number | null
           end_date: string
+          event_review?: string | null
+          execution_plan?: string | null
+          future_improvements?: string | null
           id?: string
           partner?: string | null
+          previous_improvements?: string | null
+          promotion_info?: Json | null
           start_date: string
           status?: string
           target_contracts?: number | null
@@ -94,10 +106,16 @@ export type Database = {
           actual_estimates?: number | null
           actual_sqm?: number | null
           created_at?: string
+          customer_feedback?: string | null
           efficiency?: number | null
           end_date?: string
+          event_review?: string | null
+          execution_plan?: string | null
+          future_improvements?: string | null
           id?: string
           partner?: string | null
+          previous_improvements?: string | null
+          promotion_info?: Json | null
           start_date?: string
           status?: string
           target_contracts?: number | null
