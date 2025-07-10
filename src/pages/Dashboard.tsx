@@ -136,7 +136,7 @@ const Dashboard = () => {
           </p>
         </div>
         <div className="flex items-center space-x-4">
-          <Select value={periodFilter} onValueChange={handlePeriodChange}>
+          <Select value={periodFilter} onValueChange={setPeriodFilter}>
           <SelectTrigger className="w-48">
             <SelectValue placeholder="조회기간" />
           </SelectTrigger>
@@ -163,6 +163,12 @@ const Dashboard = () => {
             />
           </div>
         )}
+        <button 
+          onClick={() => filterData(periodFilter, startDate, endDate)}
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+        >
+          검색
+        </button>
         </div>
       </div>
 
