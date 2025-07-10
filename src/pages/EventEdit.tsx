@@ -23,28 +23,62 @@ const EventEdit = () => {
   const { events, loading } = useEvents()
   const printRef = useRef<HTMLDivElement>(null)
 
-  // 기존 이벤트 데이터 로드 (샘플)
+  // 현재 이벤트 데이터 상태
+  const [currentEvent, setCurrentEvent] = useState<any>(null)
+  
+  // 이벤트 데이터가 로드되면 폼 데이터로 설정
   const [formData, setFormData] = useState({
-    title: '신혼가구 타겟 라이브 쇼핑',
+    title: '',
     type: '라이브커머스' as EventType,
-    status: '진행중' as EventStatus,
-    startDate: '2024-01-15',
-    endDate: '2024-01-20',
-    location: '온라인 라이브 스튜디오',
-    partner: '네이버 쇼핑라이브',
-    targetContracts: '50',
-    actualContracts: '32',
-    targetEstimates: '120',
-    actualEstimates: '95',
-    targetSqm: '1500',
-    actualSqm: '960',
-    totalCost: '1450000',
-    description: '신혼부부를 대상으로 한 맞춤형 인테리어 라이브 쇼핑 이벤트',
-    contactPerson: '김영업',
-    contactPhone: '010-1234-5678',
-    customerReaction: '라이브 방송 중 실시간 채팅에서 제품에 대한 긍정적인 반응이 많았으며, 특히 가격 경쟁력과 디자인에 대한 문의가 집중되었습니다. 견적 신청율이 목표 대비 79% 달성하였고, 실제 계약 전환율은 64%로 예상보다 높은 수치를 기록했습니다.',
-    eventSummary: '신혼부부 타겟 라이브 쇼핑 이벤트는 전반적으로 성공적이었습니다. 비록 목표치에는 약간 미달했지만, 높은 참여도와 긍정적인 고객 반응을 얻었으며, 향후 유사 이벤트에 대한 유의미한 인사이트를 확보했습니다. 특히 실시간 소통의 효과가 매우 좋았습니다.'
+    status: '계획중' as EventStatus,
+    startDate: '',
+    endDate: '',
+    location: '',
+    partner: '',
+    targetContracts: '',
+    actualContracts: '',
+    targetEstimates: '',
+    actualEstimates: '',
+    targetSqm: '',
+    actualSqm: '',
+    totalCost: '',
+    description: '',
+    contactPerson: '',
+    contactPhone: '',
+    customerReaction: '',
+    eventSummary: ''
   })
+
+  // URL의 ID에 해당하는 이벤트 찾기 및 폼 데이터 설정
+  useEffect(() => {
+    if (events.length > 0 && id) {
+      const event = events.find(e => e.id === id)
+      if (event) {
+        setCurrentEvent(event)
+        setFormData({
+          title: event.title,
+          type: event.type as EventType,
+          status: event.status as EventStatus,
+          startDate: event.start_date,
+          endDate: event.end_date,
+          location: '',
+          partner: event.partner || '',
+          targetContracts: String(event.target_contracts || ''),
+          actualContracts: String(event.actual_contracts || ''),
+          targetEstimates: String(event.target_estimates || ''),
+          actualEstimates: String(event.actual_estimates || ''),
+          targetSqm: String(event.target_sqm || ''),
+          actualSqm: String(event.actual_sqm || ''),
+          totalCost: String(event.total_cost || ''),
+          description: '',
+          contactPerson: '',
+          contactPhone: '',
+          customerReaction: '',
+          eventSummary: ''
+        })
+      }
+    }
+  }, [events, id])
 
   // 비용내역 관리
   const [costItems, setCostItems] = useState([
