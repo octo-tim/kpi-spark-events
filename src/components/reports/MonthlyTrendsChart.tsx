@@ -1,5 +1,6 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts'
 import { TrendingUp, Calendar } from 'lucide-react'
 import { Event } from '@/hooks/useEvents'
@@ -9,12 +10,18 @@ interface MonthlyTrendsChartProps {
 }
 
 export const MonthlyTrendsChart: React.FC<MonthlyTrendsChartProps> = ({ events }) => {
+  const [selectedYear, setSelectedYear] = useState('2025')
+
+  const getAvailableYears = () => {
+    return ['2025', '2024', '2023']
+  }
+
   const getMonthlyData = () => {
     const monthlyStats: { [key: string]: any } = {}
     
-    // 2025년 1월부터 12월까지 초기화
+    // 선택된 연도의 1월부터 12월까지 초기화
     for (let month = 1; month <= 12; month++) {
-      const monthKey = `2025-${month.toString().padStart(2, '0')}`
+      const monthKey = `${selectedYear}-${month.toString().padStart(2, '0')}`
       monthlyStats[monthKey] = {
         month: `${month}월`,
         monthKey,
@@ -29,10 +36,10 @@ export const MonthlyTrendsChart: React.FC<MonthlyTrendsChartProps> = ({ events }
       }
     }
     
-    // 2025년 이벤트 데이터 집계
+    // 선택된 연도의 이벤트 데이터 집계
     events.forEach(event => {
-      if (event.start_date.startsWith('2025-')) {
-        const monthKey = event.start_date.substring(0, 7) // 2025-01 형태
+      if (event.start_date.startsWith(`${selectedYear}-`)) {
+        const monthKey = event.start_date.substring(0, 7)
         if (monthlyStats[monthKey]) {
           const eventType = event.type
           if (eventType === '라이브커머스' || eventType === '베이비페어' || 
@@ -40,7 +47,7 @@ export const MonthlyTrendsChart: React.FC<MonthlyTrendsChartProps> = ({ events }
             monthlyStats[monthKey][eventType].events += 1
             monthlyStats[monthKey][eventType].contracts += event.actual_contracts || 0
             monthlyStats[monthKey][eventType].estimates += event.actual_estimates || 0
-            monthlyStats[monthKey][eventType].cost += (event.total_cost || 0) / 1000000 // 백만원 단위
+            monthlyStats[monthKey][eventType].cost += (event.total_cost || 0) / 1000000
             
             monthlyStats[monthKey].totalEvents += 1
             monthlyStats[monthKey].totalContracts += event.actual_contracts || 0
@@ -117,10 +124,24 @@ export const MonthlyTrendsChart: React.FC<MonthlyTrendsChartProps> = ({ events }
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="w-5 h-5" />
-            2025년 월별 성과 추이
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="w-5 h-5" />
+              {selectedYear}년 월별 성과 추이
+            </CardTitle>
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {getAvailableYears().map(year => (
+                  <SelectItem key={year} value={year}>
+                    {year}년
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -202,7 +223,7 @@ export const MonthlyTrendsChart: React.FC<MonthlyTrendsChartProps> = ({ events }
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="w-5 h-5" />
-            2025년 월별 상세 통계
+            {selectedYear}년 월별 상세 통계
           </CardTitle>
         </CardHeader>
         <CardContent>
