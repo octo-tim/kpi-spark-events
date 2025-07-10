@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Calendar, MapPin, Users, Target, ArrowLeft } from 'lucide-react'
+import { Calendar, MapPin, Users, Target, ArrowLeft, Gift, FileText } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { EventType } from '@/components/EventCard'
 
@@ -30,7 +30,16 @@ const EventCreate = () => {
     description: '',
     budget: '',
     contactPerson: '',
-    contactPhone: ''
+    contactPhone: '',
+    // 프로모션 항목
+    salePrice: '',
+    constructionCost: '',
+    estimateGift: '',
+    constructionDiscount: '',
+    constructionGift: '',
+    fieldEvent: '',
+    // 전회차 반영사항
+    previousReflection: ''
   })
 
   const handleInputChange = (field: string, value: string) => {
@@ -254,6 +263,108 @@ const EventCreate = () => {
                 onChange={(e) => handleInputChange('budget', e.target.value)}
                 placeholder="예산을 입력하세요"
                 min="0"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 프로모션 항목 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Gift className="w-5 h-5" />
+              <span>프로모션 항목</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="salePrice">판매단가</Label>
+                <Input
+                  id="salePrice"
+                  type="number"
+                  value={formData.salePrice}
+                  onChange={(e) => handleInputChange('salePrice', e.target.value)}
+                  placeholder="판매단가를 입력하세요"
+                  min="0"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="constructionCost">시공비</Label>
+                <Input
+                  id="constructionCost"
+                  type="number"
+                  value={formData.constructionCost}
+                  onChange={(e) => handleInputChange('constructionCost', e.target.value)}
+                  placeholder="시공비를 입력하세요"
+                  min="0"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="estimateGift">견적사은품</Label>
+                <Input
+                  id="estimateGift"
+                  value={formData.estimateGift}
+                  onChange={(e) => handleInputChange('estimateGift', e.target.value)}
+                  placeholder="견적사은품을 입력하세요"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="constructionDiscount">시공할인</Label>
+                <Input
+                  id="constructionDiscount"
+                  value={formData.constructionDiscount}
+                  onChange={(e) => handleInputChange('constructionDiscount', e.target.value)}
+                  placeholder="시공할인을 입력하세요"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="constructionGift">시공사은품</Label>
+              <Input
+                id="constructionGift"
+                value={formData.constructionGift}
+                onChange={(e) => handleInputChange('constructionGift', e.target.value)}
+                placeholder="시공사은품을 입력하세요"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="fieldEvent">현장이벤트</Label>
+              <Textarea
+                id="fieldEvent"
+                value={formData.fieldEvent}
+                onChange={(e) => handleInputChange('fieldEvent', e.target.value)}
+                placeholder="현장이벤트 내용을 입력하세요"
+                rows={4}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 전회차 반영사항 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <FileText className="w-5 h-5" />
+              <span>전회차 반영사항</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <Label htmlFor="previousReflection">전회차 반영사항</Label>
+              <Textarea
+                id="previousReflection"
+                value={formData.previousReflection}
+                onChange={(e) => handleInputChange('previousReflection', e.target.value)}
+                placeholder="전회차 이벤트에서 반영할 사항들을 입력하세요"
+                rows={4}
               />
             </div>
           </CardContent>
