@@ -14,7 +14,8 @@ import {
   Calendar,
   Download,
   DollarSign,
-  CalendarRange
+  CalendarRange,
+  Search
 } from 'lucide-react'
 
 const Analytics = () => {
@@ -36,16 +37,20 @@ const Analytics = () => {
 
   const handlePeriodChange = (value: string) => {
     setPeriodFilter(value)
-    if (value === 'monthly') {
-      filterAnalyticsData(value, selectedYear, selectedMonth, '')
-    } else if (value === 'quarterly') {
-      filterAnalyticsData(value, selectedYear, '', selectedQuarter)
-    } else if (value === 'custom') {
+    // 기간 타입만 변경하고 자동 검색은 하지 않음
+  }
+
+  const handleSearch = () => {
+    if (periodFilter === 'monthly') {
+      filterAnalyticsData(periodFilter, selectedYear, selectedMonth, '')
+    } else if (periodFilter === 'quarterly') {
+      filterAnalyticsData(periodFilter, selectedYear, '', selectedQuarter)
+    } else if (periodFilter === 'custom') {
       const startDateStr = `${startYear}-${startMonth}-01`
       const endDateStr = `${endYear}-${endMonth}-${new Date(parseInt(endYear), parseInt(endMonth), 0).getDate().toString().padStart(2, '0')}`
-      filterAnalyticsData(value, startDateStr, endDateStr, '')
+      filterAnalyticsData(periodFilter, startDateStr, endDateStr, '')
     } else {
-      filterAnalyticsData(value, '', '', '')
+      filterAnalyticsData(periodFilter, '', '', '')
     }
   }
 
@@ -81,16 +86,11 @@ const Analytics = () => {
   }
 
   React.useEffect(() => {
+    // 초기 로드시에만 자동 실행, 이후에는 검색 버튼으로만 실행
     if (periodFilter === 'monthly') {
       filterAnalyticsData(periodFilter, selectedYear, selectedMonth, '')
-    } else if (periodFilter === 'quarterly') {
-      filterAnalyticsData(periodFilter, selectedYear, '', selectedQuarter)
-    } else if (periodFilter === 'custom') {
-      const startDateStr = `${startYear}-${startMonth}-01`
-      const endDateStr = `${endYear}-${endMonth}-${new Date(parseInt(endYear), parseInt(endMonth), 0).getDate().toString().padStart(2, '0')}`
-      filterAnalyticsData(periodFilter, startDateStr, endDateStr, '')
     }
-  }, [selectedYear, selectedMonth, selectedQuarter, startYear, startMonth, endYear, endMonth, periodFilter])
+  }, [])
 
   const handleDownload = () => {
     console.log('리포트 다운로드 시작')
@@ -468,6 +468,10 @@ ${filteredStats.message}
                   </SelectContent>
                 </Select>
               </div>
+              <Button onClick={handleSearch} className="ml-4">
+                <Search className="w-4 h-4 mr-2" />
+                검색
+              </Button>
             </div>
           )}
           {periodFilter === 'quarterly' && (
@@ -496,6 +500,10 @@ ${filteredStats.message}
                   </SelectContent>
                 </Select>
               </div>
+              <Button onClick={handleSearch} className="ml-4">
+                <Search className="w-4 h-4 mr-2" />
+                검색
+              </Button>
             </div>
           )}
           {periodFilter === 'custom' && (
@@ -551,6 +559,10 @@ ${filteredStats.message}
                   </SelectContent>
                 </Select>
               </div>
+              <Button onClick={handleSearch} className="ml-4">
+                <Search className="w-4 h-4 mr-2" />
+                검색
+              </Button>
             </div>
           )}
           <Button onClick={handleDownload}>
