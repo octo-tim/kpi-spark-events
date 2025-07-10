@@ -100,7 +100,8 @@ export const useEvents = () => {
       const { data, error } = await supabase
         .from('events')
         .select('*')
-        .or(`start_date.lte.${endDate},end_date.gte.${startDate}`)
+        .gte('start_date', startDate)
+        .lte('start_date', endDate)
         .order('start_date', { ascending: false })
 
       if (error) {
