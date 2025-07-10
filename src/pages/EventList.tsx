@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import EventCard, { EventData, EventType, EventStatus } from '@/components/EventCard'
+import { PeriodSelector } from '@/components/reports/PeriodSelector'
 import { Search, Filter, Plus, Loader2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useEvents } from '@/hooks/useEvents'
@@ -18,11 +19,73 @@ const EventList = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState<EventType | 'all'>('all')
   const [filterStatus, setFilterStatus] = useState<EventStatus | 'all'>('all')
+  const [periodType, setPeriodType] = useState<'month' | 'quarter' | 'range'>('month')
+  const [selectedPeriod, setSelectedPeriod] = useState('')
+  const [filteredByPeriodEvents, setFilteredByPeriodEvents] = useState<any[]>([])
   
-  const { events, loading } = useEvents()
+  const { events, loading, fetchEventsByMonth, fetchEventsByQuarter, fetchEventsByPeriod } = useEvents()
+
+  // 기간별 이벤트 조회
+  useEffect(() => {
+    const fetchPeriodEvents = async () => {
+      if (!selectedPeriod) {
+        setFilteredByPeriodEvents(events)
+        return
+      }
+
+      try {
+        let periodEvents: any[] = []
+        
+        if (periodType === 'month') {
+          const [year, month] = selectedPeriod.split('-')
+          periodEvents = await fetchEventsByMonth(year, month)
+        } else if (periodType === 'quarter') {
+          const [year, quarter] = selectedPeriod.split('-Q')
+          periodEvents = await fetchEventsByQuarter(year, quarter)
+        } else if (periodType === 'range') {
+          if (selectedPeriod === '2025') {
+            periodEvents = await fetchEventsByPeriod('2025-01-01', '2025-12-31')
+          } else if (selectedPeriod === '2024') {
+            periodEvents = await fetchEventsByPeriod('2024-01-01', '2024-12-31')
+          } else if (selectedPeriod === '2024-H2') {
+            periodEvents = await fetchEventsByPeriod('2024-07-01', '2024-12-31')
+          } else if (selectedPeriod === '2024-H1') {
+            periodEvents = await fetchEventsByPeriod('2024-01-01', '2024-06-30')
+          } else if (selectedPeriod === '2023') {
+            periodEvents = await fetchEventsByPeriod('2023-01-01', '2023-12-31')
+          }
+        }
+        
+        setFilteredByPeriodEvents(periodEvents)
+      } catch (error) {
+        console.error('기간별 이벤트 조회 중 오류:', error)
+        setFilteredByPeriodEvents([])
+      }
+    }
+
+    fetchPeriodEvents()
+  }, [selectedPeriod, periodType, events, fetchEventsByMonth, fetchEventsByQuarter, fetchEventsByPeriod])
+
+  // 기간 선택 시 기본값 설정
+  useEffect(() => {
+    if (periodType === 'month' && !selectedPeriod) {
+      const now = new Date()
+      const currentPeriod = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`
+      setSelectedPeriod(currentPeriod)
+    } else if (periodType === 'quarter' && !selectedPeriod) {
+      const now = new Date()
+      const currentQuarter = Math.ceil((now.getMonth() + 1) / 3)
+      setSelectedPeriod(`${now.getFullYear()}-Q${currentQuarter}`)
+    } else if (periodType === 'range' && !selectedPeriod) {
+      setSelectedPeriod('2025')
+    }
+  }, [periodType, selectedPeriod])
+
+  // 표시할 이벤트 목록 결정
+  const eventsToShow = selectedPeriod ? filteredByPeriodEvents : events
 
   // 이벤트 데이터를 EventData 형태로 변환
-  const convertedEvents: EventData[] = events.map(event => ({
+  const convertedEvents: EventData[] = eventsToShow.map(event => ({
     id: event.id,
     title: event.title,
     type: event.type as EventType,
@@ -75,6 +138,14 @@ const EventList = () => {
           </Link>
         </Button>
       </div>
+
+      {/* Period Selector */}
+      <PeriodSelector
+        periodType={periodType}
+        selectedPeriod={selectedPeriod}
+        onPeriodTypeChange={setPeriodType}
+        onPeriodChange={setSelectedPeriod}
+      />
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -139,7 +210,7 @@ const EventList = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2 text-sm text-muted-foreground">
           <span>총 {filteredEvents.length}개의 이벤트</span>
-          {(filterType !== 'all' || filterStatus !== 'all' || searchTerm) && (
+          {(filterType !== 'all' || filterStatus !== 'all' || searchTerm || selectedPeriod) && (
             <>
               <span>•</span>
               <Badge variant="secondary" className="text-xs">
