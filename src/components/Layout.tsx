@@ -1,6 +1,8 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/hooks/useAuth'
+import { Button } from '@/components/ui/button'
 import { 
   Calendar, 
   BarChart3, 
@@ -8,8 +10,11 @@ import {
   Home,
   Settings,
   Users,
-  FileText
+  FileText,
+  LogOut,
+  User
 } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -17,6 +22,8 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   const location = useLocation()
+  const { user, signOut } = useAuth()
+  const { toast } = useToast()
   
   const navigation = [
     { name: '대시보드', href: '/', icon: Home },
@@ -25,6 +32,22 @@ const Layout = ({ children }: LayoutProps) => {
     { name: '통계 분석', href: '/analytics', icon: BarChart3 },
     { name: '보고서', href: '/reports', icon: FileText },
   ]
+
+  const handleSignOut = async () => {
+    try {
+      await signOut()
+      toast({
+        title: "로그아웃 완료",
+        description: "안전하게 로그아웃되었습니다.",
+      })
+    } catch (error) {
+      toast({
+        title: "오류",
+        description: "로그아웃 중 오류가 발생했습니다.",
+        variant: "destructive",
+      })
+    }
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -41,9 +64,19 @@ const Layout = ({ children }: LayoutProps) => {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <button className="p-2 text-muted-foreground hover:text-foreground">
-                <Settings className="w-5 h-5" />
-              </button>
+              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                <User className="w-4 h-4" />
+                <span>{user?.email}</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSignOut}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                로그아웃
+              </Button>
             </div>
           </div>
         </div>
