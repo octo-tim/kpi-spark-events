@@ -22,6 +22,10 @@ const Analytics = () => {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [filteredStats, setFilteredStats] = useState(null)
+  const [eventTableFilter, setEventTableFilter] = useState('all')
+  const [eventSearchStart, setEventSearchStart] = useState('')
+  const [eventSearchEnd, setEventSearchEnd] = useState('')
+  const [filteredEvents, setFilteredEvents] = useState(null)
 
   const handlePeriodChange = (value: string) => {
     setPeriodFilter(value)
@@ -148,6 +152,160 @@ ${filteredStats.message}
     { partner: '카카오 쇼핑라이브', contracts: 29, rate: 82.3 },
     { partner: '롯데 베이비페어', contracts: 25, rate: 78.9 }
   ]
+
+  // 전체 이벤트 목록 데이터
+  const allEvents = [
+    {
+      id: '1',
+      title: '신혼가구 타겟 라이브 쇼핑',
+      type: '라이브커머스',
+      status: '진행중',
+      startDate: '2024-01-15',
+      endDate: '2024-01-20',
+      partner: '네이버 쇼핑라이브',
+      targetContracts: 50,
+      actualContracts: 32,
+      targetEstimates: 120,
+      actualEstimates: 95,
+      targetSqm: 1500,
+      actualSqm: 960,
+      totalCost: 15000000,
+      efficiency: 82
+    },
+    {
+      id: '2',
+      title: '서울 베이비&키즈 페어 2024',
+      type: '베이비페어',
+      status: '완료',
+      startDate: '2024-01-08',
+      endDate: '2024-01-14',
+      partner: '베이비페어 조직위',
+      targetContracts: 80,
+      actualContracts: 95,
+      targetEstimates: 200,
+      actualEstimates: 215,
+      targetSqm: 2400,
+      actualSqm: 2850,
+      totalCost: 28500000,
+      efficiency: 88
+    },
+    {
+      id: '3',
+      title: '분당 신도시 입주박람회',
+      type: '입주박람회',
+      status: '계획중',
+      startDate: '2024-02-01',
+      endDate: '2024-02-03',
+      partner: '분당신도시개발',
+      targetContracts: 35,
+      actualContracts: 35,
+      targetEstimates: 85,
+      actualEstimates: 85,
+      targetSqm: 1200,
+      actualSqm: 1200,
+      totalCost: 12000000,
+      efficiency: 75
+    },
+    {
+      id: '4',
+      title: '카카오 쇼핑라이브 협업',
+      type: '라이브커머스',
+      status: '완료',
+      startDate: '2024-01-22',
+      endDate: '2024-01-28',
+      partner: '카카오 쇼핑라이브',
+      targetContracts: 40,
+      actualContracts: 38,
+      targetEstimates: 100,
+      actualEstimates: 92,
+      targetSqm: 1300,
+      actualSqm: 1150,
+      totalCost: 18000000,
+      efficiency: 79
+    },
+    {
+      id: '5',
+      title: '롯데 베이비페어 참가',
+      type: '베이비페어',
+      status: '진행중',
+      startDate: '2024-01-29',
+      endDate: '2024-02-04',
+      partner: '롯데 베이비페어',
+      targetContracts: 60,
+      actualContracts: 45,
+      targetEstimates: 150,
+      actualEstimates: 118,
+      targetSqm: 2000,
+      actualSqm: 1580,
+      totalCost: 22000000,
+      efficiency: 76
+    },
+    {
+      id: '6',
+      title: '인플루언서 협업 프로모션',
+      type: '인플루언서공구',
+      status: '완료',
+      startDate: '2024-01-05',
+      endDate: '2024-01-12',
+      partner: '인플루언서그룹',
+      targetContracts: 25,
+      actualContracts: 27,
+      targetEstimates: 65,
+      actualEstimates: 72,
+      targetSqm: 800,
+      actualSqm: 750,
+      totalCost: 9500000,
+      efficiency: 85
+    }
+  ]
+
+  // 이벤트 테이블 필터링 함수
+  const filterEventTable = (filter: string, start: string, end: string) => {
+    let filtered = allEvents
+
+    if (filter === 'completed') {
+      filtered = allEvents.filter(event => event.status === '완료')
+    } else if (filter === 'ongoing') {
+      filtered = allEvents.filter(event => event.status === '진행중')
+    } else if (filter === 'planned') {
+      filtered = allEvents.filter(event => event.status === '계획중')
+    } else if (filter === 'custom' && start && end) {
+      filtered = allEvents.filter(event => {
+        const eventStart = new Date(event.startDate)
+        const filterStart = new Date(start)
+        const filterEnd = new Date(end)
+        return eventStart >= filterStart && eventStart <= filterEnd
+      })
+    }
+
+    setFilteredEvents(filtered)
+  }
+
+  const handleEventTableFilterChange = (value: string) => {
+    setEventTableFilter(value)
+    if (value !== 'custom') {
+      setEventSearchStart('')
+      setEventSearchEnd('')
+    }
+    filterEventTable(value, eventSearchStart, eventSearchEnd)
+  }
+
+  React.useEffect(() => {
+    if (eventTableFilter === 'custom' && eventSearchStart && eventSearchEnd) {
+      filterEventTable(eventTableFilter, eventSearchStart, eventSearchEnd)
+    }
+  }, [eventSearchStart, eventSearchEnd, eventTableFilter])
+
+  const getStatusBadge = (status: string) => {
+    const statusMap = {
+      '완료': 'bg-success text-success-foreground',
+      '진행중': 'bg-warning text-warning-foreground', 
+      '계획중': 'bg-muted text-muted-foreground'
+    }
+    return <Badge className={statusMap[status as keyof typeof statusMap]}>{status}</Badge>
+  }
+
+  const displayEvents = filteredEvents || allEvents
 
   const getTrendIcon = (trend: string) => {
     return trend === 'up' ? 
@@ -451,6 +609,167 @@ ${filteredStats.message}
           </CardContent>
         </Card>
       </div>
+
+      {/* 전체 이벤트 리스트 테이블 */}
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-start">
+            <div>
+              <CardTitle>전체 이벤트 리스트</CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                모든 이벤트의 상세 정보를 확인하고 기간별로 검색할 수 있습니다
+              </p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Select value={eventTableFilter} onValueChange={handleEventTableFilterChange}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="상태별 필터" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">전체</SelectItem>
+                  <SelectItem value="completed">완료</SelectItem>
+                  <SelectItem value="ongoing">진행중</SelectItem>
+                  <SelectItem value="planned">계획중</SelectItem>
+                  <SelectItem value="custom">기간검색</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              {eventTableFilter === 'custom' && (
+                <div className="flex items-center space-x-2">
+                  <Input 
+                    type="date" 
+                    className="w-36" 
+                    placeholder="시작일"
+                    value={eventSearchStart}
+                    onChange={(e) => setEventSearchStart(e.target.value)}
+                  />
+                  <span className="text-muted-foreground">~</span>
+                  <Input 
+                    type="date" 
+                    className="w-36" 
+                    placeholder="종료일"
+                    value={eventSearchEnd}
+                    onChange={(e) => setEventSearchEnd(e.target.value)}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="text-left p-3 font-semibold text-sm">이벤트명</th>
+                  <th className="text-left p-3 font-semibold text-sm">채널</th>
+                  <th className="text-left p-3 font-semibold text-sm">상태</th>
+                  <th className="text-left p-3 font-semibold text-sm">기간</th>
+                  <th className="text-left p-3 font-semibold text-sm">파트너</th>
+                  <th className="text-right p-3 font-semibold text-sm">목표계약</th>
+                  <th className="text-right p-3 font-semibold text-sm">실제계약</th>
+                  <th className="text-right p-3 font-semibold text-sm">달성률</th>
+                  <th className="text-right p-3 font-semibold text-sm">계약장수</th>
+                  <th className="text-right p-3 font-semibold text-sm">총비용</th>
+                  <th className="text-right p-3 font-semibold text-sm">효율성</th>
+                </tr>
+              </thead>
+              <tbody>
+                {displayEvents.length > 0 ? (
+                  displayEvents.map((event) => {
+                    const achievementRate = ((event.actualContracts / event.targetContracts) * 100).toFixed(1)
+                    return (
+                      <tr key={event.id} className="border-b border-border hover:bg-muted/50 transition-colors">
+                        <td className="p-3">
+                          <div>
+                            <div className="font-medium">{event.title}</div>
+                          </div>
+                        </td>
+                        <td className="p-3">
+                          <Badge variant="outline" className="text-xs">
+                            {event.type}
+                          </Badge>
+                        </td>
+                        <td className="p-3">
+                          {getStatusBadge(event.status)}
+                        </td>
+                        <td className="p-3">
+                          <div className="text-sm">
+                            <div>{event.startDate}</div>
+                            <div className="text-muted-foreground">~ {event.endDate}</div>
+                          </div>
+                        </td>
+                        <td className="p-3 text-sm">{event.partner}</td>
+                        <td className="p-3 text-right text-sm">{event.targetContracts}건</td>
+                        <td className="p-3 text-right text-sm font-medium">{event.actualContracts}건</td>
+                        <td className="p-3 text-right">
+                          <span className={`text-sm font-medium ${
+                            parseFloat(achievementRate) >= 100 ? 'text-success' :
+                            parseFloat(achievementRate) >= 80 ? 'text-warning' :
+                            'text-danger'
+                          }`}>
+                            {achievementRate}%
+                          </span>
+                        </td>
+                        <td className="p-3 text-right text-sm">{event.actualSqm.toLocaleString()}장</td>
+                        <td className="p-3 text-right text-sm">{(event.totalCost / 1000000).toFixed(1)}M원</td>
+                        <td className="p-3 text-right">
+                          <Badge 
+                            className={`text-xs ${
+                              event.efficiency >= 85 ? "bg-success text-success-foreground" :
+                              event.efficiency >= 70 ? "bg-warning text-warning-foreground" :
+                              "bg-danger text-danger-foreground"
+                            }`}
+                          >
+                            {event.efficiency}%
+                          </Badge>
+                        </td>
+                      </tr>
+                    )
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={11} className="text-center py-8 text-muted-foreground">
+                      {eventTableFilter === 'custom' ? 
+                        '선택한 기간에 해당하는 이벤트가 없습니다.' : 
+                        '검색 조건에 맞는 이벤트가 없습니다.'
+                      }
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+          
+          {/* 테이블 하단 요약 정보 */}
+          <div className="mt-4 p-4 bg-muted/30 rounded-lg">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div className="text-center">
+                <div className="font-semibold text-lg">{displayEvents.length}</div>
+                <div className="text-muted-foreground">총 이벤트</div>
+              </div>
+              <div className="text-center">
+                <div className="font-semibold text-lg">
+                  {displayEvents.reduce((sum, event) => sum + event.actualContracts, 0)}
+                </div>
+                <div className="text-muted-foreground">총 계약건수</div>
+              </div>
+              <div className="text-center">
+                <div className="font-semibold text-lg">
+                  {displayEvents.reduce((sum, event) => sum + event.actualSqm, 0).toLocaleString()}
+                </div>
+                <div className="text-muted-foreground">총 계약장수</div>
+              </div>
+              <div className="text-center">
+                <div className="font-semibold text-lg">
+                  {(displayEvents.reduce((sum, event) => sum + event.totalCost, 0) / 1000000).toFixed(1)}M
+                </div>
+                <div className="text-muted-foreground">총 비용</div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
