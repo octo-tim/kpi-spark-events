@@ -88,7 +88,7 @@ export const useEvents = () => {
     }
   }
 
-  // 월별 이벤트 조회 - 해당 월에 진행되는 이벤트 (시작일이나 종료일이 해당 월에 포함)
+  // 월별 이벤트 조회 - 시작일이 해당 월에 있는 이벤트만 검색
   const fetchEventsByMonth = async (year: string, month: string) => {
     try {
       setLoading(true)
@@ -100,7 +100,8 @@ export const useEvents = () => {
       const { data, error } = await supabase
         .from('events')
         .select('*')
-        .or(`and(start_date.lte.${endDate},end_date.gte.${startDate})`)
+        .gte('start_date', startDate)
+        .lte('start_date', endDate)
         .order('start_date', { ascending: false })
 
       if (error) {
