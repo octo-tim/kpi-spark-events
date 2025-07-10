@@ -19,17 +19,27 @@ import {
 
 const Analytics = () => {
   const [periodFilter, setPeriodFilter] = useState('monthly')
-  const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
+  const [startYear, setStartYear] = useState('2024')
+  const [startMonth, setStartMonth] = useState('01')
+  const [endYear, setEndYear] = useState('2024')
+  const [endMonth, setEndMonth] = useState('12')
   const [filteredStats, setFilteredStats] = useState(null)
   const [eventTableFilter, setEventTableFilter] = useState('all')
-  const [eventSearchStart, setEventSearchStart] = useState('')
-  const [eventSearchEnd, setEventSearchEnd] = useState('')
+  const [eventSearchStartYear, setEventSearchStartYear] = useState('2024')
+  const [eventSearchStartMonth, setEventSearchStartMonth] = useState('01')
+  const [eventSearchEndYear, setEventSearchEndYear] = useState('2024')
+  const [eventSearchEndMonth, setEventSearchEndMonth] = useState('12')
   const [filteredEvents, setFilteredEvents] = useState(null)
 
   const handlePeriodChange = (value: string) => {
     setPeriodFilter(value)
-    filterAnalyticsData(value, startDate, endDate)
+    if (value === 'custom') {
+      const startDateStr = `${startYear}-${startMonth}-01`
+      const endDateStr = `${endYear}-${endMonth}-${new Date(parseInt(endYear), parseInt(endMonth), 0).getDate().toString().padStart(2, '0')}`
+      filterAnalyticsData(value, startDateStr, endDateStr)
+    } else {
+      filterAnalyticsData(value, '', '')
+    }
   }
 
   const filterAnalyticsData = (period: string, start: string, end: string) => {
@@ -53,24 +63,31 @@ const Analytics = () => {
         totalEvents: 18,
         totalContracts: 320
       })
+    } else if (period !== 'custom') {
+      setFilteredStats(null)
     }
   }
 
   React.useEffect(() => {
-    if (periodFilter === 'custom' && startDate && endDate) {
-      filterAnalyticsData(periodFilter, startDate, endDate)
+    if (periodFilter === 'custom') {
+      const startDateStr = `${startYear}-${startMonth}-01`
+      const endDateStr = `${endYear}-${endMonth}-${new Date(parseInt(endYear), parseInt(endMonth), 0).getDate().toString().padStart(2, '0')}`
+      filterAnalyticsData(periodFilter, startDateStr, endDateStr)
     }
-  }, [startDate, endDate, periodFilter])
+  }, [startYear, startMonth, endYear, endMonth, periodFilter])
 
   const handleDownload = () => {
     console.log('리포트 다운로드 시작')
+    
+    const customPeriod = periodFilter === 'custom' ? 
+      `${startYear}년 ${startMonth}월 ~ ${endYear}년 ${endMonth}월` : ''
     
     // 실제 PDF 생성 로직
     const reportData = `
 통계 분석 리포트
 생성일: ${new Date().toLocaleDateString()}
 조회기간: ${periodFilter}
-${periodFilter === 'custom' ? `기간: ${startDate} ~ ${endDate}` : ''}
+${periodFilter === 'custom' ? `기간: ${customPeriod}` : ''}
 
 ${filteredStats ? `필터링된 데이터:
 ${filteredStats.message}
@@ -330,24 +347,29 @@ ${filteredStats.message}
     setEventTableFilter(value)
     
     if (value !== 'custom') {
-      setEventSearchStart('')
-      setEventSearchEnd('')
-      setFilteredEvents(null) // 'all' 선택시 필터 초기화
+      setEventSearchStartYear('2024')
+      setEventSearchStartMonth('01')
+      setEventSearchEndYear('2024')
+      setEventSearchEndMonth('12')
     }
     
     // 즉시 필터링 실행
     if (value !== 'custom') {
       filterEventTable(value, '', '')
-    } else if (eventSearchStart && eventSearchEnd) {
-      filterEventTable(value, eventSearchStart, eventSearchEnd)
+    } else {
+      const startDateStr = `${eventSearchStartYear}-${eventSearchStartMonth}-01`
+      const endDateStr = `${eventSearchEndYear}-${eventSearchEndMonth}-${new Date(parseInt(eventSearchEndYear), parseInt(eventSearchEndMonth), 0).getDate().toString().padStart(2, '0')}`
+      filterEventTable(value, startDateStr, endDateStr)
     }
   }
 
   React.useEffect(() => {
-    if (eventTableFilter === 'custom' && eventSearchStart && eventSearchEnd) {
-      filterEventTable(eventTableFilter, eventSearchStart, eventSearchEnd)
+    if (eventTableFilter === 'custom') {
+      const startDateStr = `${eventSearchStartYear}-${eventSearchStartMonth}-01`
+      const endDateStr = `${eventSearchEndYear}-${eventSearchEndMonth}-${new Date(parseInt(eventSearchEndYear), parseInt(eventSearchEndMonth), 0).getDate().toString().padStart(2, '0')}`
+      filterEventTable(eventTableFilter, startDateStr, endDateStr)
     }
-  }, [eventSearchStart, eventSearchEnd, eventTableFilter])
+  }, [eventSearchStartYear, eventSearchStartMonth, eventSearchEndYear, eventSearchEndMonth, eventTableFilter])
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
@@ -404,19 +426,57 @@ ${filteredStats.message}
           </Select>
           {periodFilter === 'custom' && (
             <div className="flex items-center space-x-2">
-              <Input 
-                type="date" 
-                className="w-40" 
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-              />
-              <span>~</span>
-              <Input 
-                type="date" 
-                className="w-40" 
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-              />
+              <div className="flex items-center space-x-1 bg-muted/30 p-2 rounded-lg">
+                <Select value={startYear} onValueChange={setStartYear}>
+                  <SelectTrigger className="w-20 border-none bg-background">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2023">2023</SelectItem>
+                    <SelectItem value="2024">2024</SelectItem>
+                    <SelectItem value="2025">2025</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-sm font-medium">년</span>
+                <Select value={startMonth} onValueChange={setStartMonth}>
+                  <SelectTrigger className="w-16 border-none bg-background">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({length: 12}, (_, i) => (
+                      <SelectItem key={i+1} value={(i+1).toString().padStart(2, '0')}>
+                        {i+1}월
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <span className="font-medium">~</span>
+              <div className="flex items-center space-x-1 bg-muted/30 p-2 rounded-lg">
+                <Select value={endYear} onValueChange={setEndYear}>
+                  <SelectTrigger className="w-20 border-none bg-background">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2023">2023</SelectItem>
+                    <SelectItem value="2024">2024</SelectItem>
+                    <SelectItem value="2025">2025</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-sm font-medium">년</span>
+                <Select value={endMonth} onValueChange={setEndMonth}>
+                  <SelectTrigger className="w-16 border-none bg-background">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({length: 12}, (_, i) => (
+                      <SelectItem key={i+1} value={(i+1).toString().padStart(2, '0')}>
+                        {i+1}월
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           )}
           <Button onClick={handleDownload}>
@@ -688,22 +748,58 @@ ${filteredStats.message}
               </Select>
               
               {eventTableFilter === 'custom' && (
-                <div className="flex items-center space-x-2">
-                  <Input 
-                    type="date" 
-                    className="w-36" 
-                    placeholder="시작일"
-                    value={eventSearchStart}
-                    onChange={(e) => setEventSearchStart(e.target.value)}
-                  />
-                  <span className="text-muted-foreground">~</span>
-                  <Input 
-                    type="date" 
-                    className="w-36" 
-                    placeholder="종료일"
-                    value={eventSearchEnd}
-                    onChange={(e) => setEventSearchEnd(e.target.value)}
-                  />
+                 <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-1 bg-muted/30 p-1 rounded">
+                    <Select value={eventSearchStartYear} onValueChange={setEventSearchStartYear}>
+                      <SelectTrigger className="w-16 h-8 border-none bg-background text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="2023">2023</SelectItem>
+                        <SelectItem value="2024">2024</SelectItem>
+                        <SelectItem value="2025">2025</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <span className="text-xs">년</span>
+                    <Select value={eventSearchStartMonth} onValueChange={setEventSearchStartMonth}>
+                      <SelectTrigger className="w-12 h-8 border-none bg-background text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({length: 12}, (_, i) => (
+                          <SelectItem key={i+1} value={(i+1).toString().padStart(2, '0')}>
+                            {i+1}월
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <span className="text-muted-foreground text-sm">~</span>
+                  <div className="flex items-center space-x-1 bg-muted/30 p-1 rounded">
+                    <Select value={eventSearchEndYear} onValueChange={setEventSearchEndYear}>
+                      <SelectTrigger className="w-16 h-8 border-none bg-background text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="2023">2023</SelectItem>
+                        <SelectItem value="2024">2024</SelectItem>
+                        <SelectItem value="2025">2025</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <span className="text-xs">년</span>
+                    <Select value={eventSearchEndMonth} onValueChange={setEventSearchEndMonth}>
+                      <SelectTrigger className="w-12 h-8 border-none bg-background text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({length: 12}, (_, i) => (
+                          <SelectItem key={i+1} value={(i+1).toString().padStart(2, '0')}>
+                            {i+1}월
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               )}
             </div>
