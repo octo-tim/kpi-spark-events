@@ -27,15 +27,14 @@ const EventList = () => {
   // 기간 선택 시 기본값 설정 (periodType이 변경될 때만)
   useEffect(() => {
     if (periodType === 'month') {
-      const now = new Date()
-      const currentPeriod = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`
-      setSelectedPeriod(currentPeriod)
+      // 실제 데이터가 있는 2024년 7월로 설정
+      setSelectedPeriod('2024-07')
     } else if (periodType === 'quarter') {
-      const now = new Date()
-      const currentQuarter = Math.ceil((now.getMonth() + 1) / 3)
-      setSelectedPeriod(`${now.getFullYear()}-Q${currentQuarter}`)
+      // 2024년 3분기로 설정
+      setSelectedPeriod('2024-Q3')
     } else if (periodType === 'range') {
-      setSelectedPeriod('2025')
+      // 2024년 전체로 설정
+      setSelectedPeriod('2024')
     }
   }, [periodType]) // selectedPeriod를 의존성에서 제거
 
