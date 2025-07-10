@@ -393,49 +393,206 @@ const EventDetail = () => {
             </Card>
           )}
 
-          {/* 실행 보고서 */}
+          {/* 프로모션 정보 */}
           <Card>
             <CardHeader>
-              <CardTitle>실행 보고서</CardTitle>
+              <CardTitle className="flex items-center space-x-2">
+                <Target className="w-5 h-5" />
+                <span>프로모션 정보</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h4 className="font-medium text-foreground">할인 혜택</h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">판매단가</span>
+                      <span className="text-sm font-medium">
+                        {currentEvent.type === '라이브커머스' ? '120,000원/장' : 
+                         currentEvent.type === '베이비페어' ? '89,000원/장' :
+                         currentEvent.type === '입주박람회' ? '95,000원/장' : '100,000원/장'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">추가할인</span>
+                      <span className="text-sm font-medium">
+                        {currentEvent.type === '라이브커머스' ? '장당 5,000원' : 
+                         currentEvent.type === '베이비페어' ? '장당 3,000원' :
+                         currentEvent.type === '입주박람회' ? '장당 4,000원' : '장당 3,000원'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">추가할인 조건</span>
+                      <span className="text-sm font-medium">30장 이상 계약시</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="font-medium text-foreground">시공 혜택</h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">시공비</span>
+                      <span className="text-sm font-medium">
+                        {currentEvent.type === '라이브커머스' ? '25,000원/장' : 
+                         currentEvent.type === '베이비페어' ? '20,000원/장' :
+                         currentEvent.type === '입주박람회' ? '22,000원/장' : '23,000원/장'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">시공비할인조건</span>
+                      <span className="text-sm font-medium">50장 이상 무료시공</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-border">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <h4 className="font-medium text-foreground">견적 사은품</h4>
+                    <div className="bg-muted/50 p-3 rounded-lg">
+                      <p className="text-sm text-muted-foreground">
+                        {currentEvent.type === '라이브커머스' ? '스마트 무드등 세트' : 
+                         currentEvent.type === '베이비페어' ? '유아용 매트리스 커버' :
+                         currentEvent.type === '입주박람회' ? '프리미엄 청소용품 세트' : '기본 사은품 세트'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h4 className="font-medium text-foreground">시공 사은품</h4>
+                    <div className="bg-muted/50 p-3 rounded-lg">
+                      <p className="text-sm text-muted-foreground">
+                        {currentEvent.type === '라이브커머스' ? '공기청정기 + 가습기' : 
+                         currentEvent.type === '베이비페어' ? '아기 안전용품 세트' :
+                         currentEvent.type === '입주박람회' ? '스마트 홈 디바이스' : '프리미엄 사은품'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-border">
+                <h4 className="font-medium text-foreground mb-3">현장 이벤트</h4>
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <p className="text-sm text-muted-foreground">
+                    {currentEvent.type === '라이브커머스' ? 
+                      '실시간 채팅 참여 이벤트: 댓글 작성시 추첨을 통해 카페 쿠폰 증정 (매시간 10명)' : 
+                     currentEvent.type === '베이비페어' ? 
+                      '베이비 포토존 운영: 아이와 함께 사진 촬영시 즉석 프린트 제공 및 포토프레임 증정' :
+                     currentEvent.type === '입주박람회' ? 
+                      '입주민 대상 특별 혜택: 현장 상담 및 견적 작성시 아메리카노 제공, 계약시 상품권 증정' : 
+                      '현장 참여 이벤트 및 다양한 혜택 제공'}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 전회차 반영사항 */}
+          <Card>
+            <CardHeader>
+              <CardTitle>전회차 반영사항</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="bg-muted/50 p-4 rounded-lg">
-                  <h4 className="font-medium mb-2">진행 상황</h4>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    현재 이벤트가 순조롭게 진행 중입니다. 목표 대비 달성률이 양호한 편이며, 
-                    특히 견적 문의가 예상보다 많이 들어오고 있습니다.
-                  </p>
-                  <div className="text-xs text-muted-foreground">
-                    최종 업데이트: {new Date(currentEvent.updated_at).toLocaleString('ko-KR')}
-                  </div>
+                  <h4 className="font-medium mb-3">개선사항</h4>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    {currentEvent.type === '라이브커머스' && (
+                      <>
+                        <li>• 라이브 방송 시간대를 오후 8시-10시로 조정하여 시청률 향상</li>
+                        <li>• 실시간 채팅 모니터링 인력 확충으로 고객 문의 응답률 개선</li>
+                        <li>• 제품 설명 자료를 더 시각적으로 개선하여 이해도 증진</li>
+                        <li>• 배송 안내 메시지 자동화로 고객 만족도 향상</li>
+                      </>
+                    )}
+                    {currentEvent.type === '베이비페어' && (
+                      <>
+                        <li>• 부스 위치를 메인 홀 입구 근처로 이동하여 접근성 개선</li>
+                        <li>• 유모차 주차 공간 확보로 방문객 편의성 증대</li>
+                        <li>• 아이 놀이 공간 마련으로 부모의 상담 집중도 향상</li>
+                        <li>• 시식 코너 운영으로 제품 체험 기회 확대</li>
+                      </>
+                    )}
+                    {currentEvent.type === '입주박람회' && (
+                      <>
+                        <li>• 아파트 단지별 맞춤 상담 코너 신설로 전문성 강화</li>
+                        <li>• 3D 시뮬레이션 시연 장비 도입으로 시각적 효과 개선</li>
+                        <li>• 현장 견적 시스템 도입으로 즉시 견적 제공 가능</li>
+                        <li>• 입주 일정에 맞춘 시공 스케줄링 서비스 제공</li>
+                      </>
+                    )}
+                    {currentEvent.type === '인플루언서공구' && (
+                      <>
+                        <li>• 인플루언서 선정 기준 강화로 타겟 고객층 정확도 향상</li>
+                        <li>• 공구 기간을 주말 포함 7일로 연장하여 참여도 증대</li>
+                        <li>• 후기 작성 이벤트 추가로 브랜드 인지도 확산</li>
+                        <li>• 재구매 고객 대상 추가 할인 혜택 제공</li>
+                      </>
+                    )}
+                  </ul>
                 </div>
 
-                <div className="space-y-3">
-                  <h4 className="font-medium">주요 성과</h4>
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <h4 className="font-medium mb-3">유지사항</h4>
                   <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li className="flex items-center space-x-2">
-                      <TrendingUp className="w-4 h-4 text-success" />
-                      <span>
-                        계약 달성률 {calculateRate(currentEvent.actual_contracts || 0, currentEvent.target_contracts)}% 
-                        ({currentEvent.actual_contracts}/{currentEvent.target_contracts}건)
-                      </span>
-                    </li>
-                    <li className="flex items-center space-x-2">
-                      <TrendingUp className="w-4 h-4 text-success" />
-                      <span>
-                        견적 달성률 {calculateRate(currentEvent.actual_estimates || 0, currentEvent.target_estimates)}%
-                        ({currentEvent.actual_estimates}/{currentEvent.target_estimates}건)
-                      </span>
-                    </li>
-                    <li className="flex items-center space-x-2">
-                      <TrendingUp className="w-4 h-4 text-success" />
-                      <span>
-                        장수 달성률 {calculateRate(currentEvent.actual_sqm || 0, currentEvent.target_sqm)}%
-                        ({currentEvent.actual_sqm}/{currentEvent.target_sqm}장)
-                      </span>
-                    </li>
+                    <li>• 고객 상담 품질 관리 시스템 지속 운영</li>
+                    <li>• 사후 서비스 만족도 조사 및 피드백 반영</li>
+                    <li>• 경쟁사 대비 차별화된 혜택 유지</li>
+                    <li>• 브랜드 일관성 있는 마케팅 메시지 전달</li>
                   </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 실행계획 */}
+          <Card>
+            <CardHeader>
+              <CardTitle>실행 계획</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                <div className="border border-border rounded-lg p-4">
+                  <h4 className="font-medium mb-3 text-primary">1. 사전 준비 단계</h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {currentEvent.type === '라이브커머스' ? 
+                      '라이브 방송 시나리오 작성, 제품 촬영 및 편집, 스튜디오 세팅 점검, MC 및 스태프 브리핑, 기술 테스트 진행' :
+                     currentEvent.type === '베이비페어' ? 
+                      '부스 디자인 확정, 전시용 제품 준비, 홍보물 제작, 직원 교육, 사은품 준비 및 재고 관리' :
+                     currentEvent.type === '입주박람회' ? 
+                      '아파트별 맞춤 자료 준비, 상담 부스 설치, 견적 시스템 구축, 전문 상담사 배치, 홍보 활동 시작' :
+                      '인플루언서 섭외 및 컨텐츠 기획, 공구 상품 선정, 이벤트 페이지 구축, 마케팅 자료 제작'}
+                  </p>
+                </div>
+
+                <div className="border border-border rounded-lg p-4">
+                  <h4 className="font-medium mb-3 text-primary">2. 실행 단계</h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {currentEvent.type === '라이브커머스' ? 
+                      '라이브 방송 진행, 실시간 채팅 관리, 주문 처리, 고객 문의 응답, 이벤트 진행, 시청률 모니터링' :
+                     currentEvent.type === '베이비페어' ? 
+                      '부스 운영, 고객 상담, 제품 시연, 견적 작성, 현장 이벤트 진행, 방문객 데이터 수집' :
+                     currentEvent.type === '입주박람회' ? 
+                      '상담 부스 운영, 견적 상담, 계약 진행, 현장 이벤트 관리, 입주민 응대, 데이터베이스 구축' :
+                      '공구 이벤트 런칭, SNS 홍보, 주문 관리, 고객 서비스, 인플루언서 소통, 실시간 모니터링'}
+                  </p>
+                </div>
+
+                <div className="border border-border rounded-lg p-4">
+                  <h4 className="font-medium mb-3 text-primary">3. 사후 관리</h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {currentEvent.type === '라이브커머스' ? 
+                      '주문 배송 관리, 고객 만족도 조사, 방송 하이라이트 편집, 재방송 스케줄링, 다음 라이브 기획' :
+                     currentEvent.type === '베이비페어' ? 
+                      '견적서 발송, 고객 후속 상담, 계약 진행, 만족도 조사, 다음 참가 계획 수립' :
+                     currentEvent.type === '입주박람회' ? 
+                      '계약 후속 처리, 시공 일정 조율, 고객 관리, 입주 안내, 사후 서비스 제공' :
+                      '주문 처리 완료, 후기 관리, 재구매 유도, 성과 분석, 다음 공구 기획'}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -506,60 +663,75 @@ const EventDetail = () => {
             </CardContent>
           </Card>
 
-          {/* 일정 및 마일스톤 */}
+          {/* 담당자 정보 */}
           <Card>
             <CardHeader>
-              <CardTitle>이벤트 일정</CardTitle>
+              <CardTitle>담당자 정보</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-primary rounded-full"></div>
+                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                    <Users className="w-5 h-5 text-primary" />
+                  </div>
                   <div className="flex-1">
-                    <div className="text-sm font-medium">이벤트 시작</div>
-                    <div className="text-xs text-muted-foreground">{currentEvent.start_date}</div>
+                    <div className="font-medium text-sm">이벤트 매니저</div>
+                    <div className="text-sm text-muted-foreground">김관리 (마케팅팀)</div>
+                    <div className="text-xs text-muted-foreground">010-9876-5432</div>
                   </div>
                 </div>
+
                 <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-muted rounded-full"></div>
-                  <div className="flex-1">
-                    <div className="text-sm font-medium">중간 점검</div>
-                    <div className="text-xs text-muted-foreground">
-                      {new Date((new Date(currentEvent.start_date).getTime() + new Date(currentEvent.end_date).getTime()) / 2).toISOString().split('T')[0]}
-                    </div>
+                  <div className="w-10 h-10 bg-success/10 rounded-full flex items-center justify-center">
+                    <Phone className="w-5 h-5 text-success" />
                   </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-success rounded-full"></div>
                   <div className="flex-1">
-                    <div className="text-sm font-medium">이벤트 종료</div>
-                    <div className="text-xs text-muted-foreground">{currentEvent.end_date}</div>
+                    <div className="font-medium text-sm">현장 담당자</div>
+                    <div className="text-sm text-muted-foreground">이현장 (영업팀)</div>
+                    <div className="text-xs text-muted-foreground">010-1111-2222</div>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* 빠른 액션 */}
+          {/* 상태 및 통계 */}
           <Card>
             <CardHeader>
-              <CardTitle>빠른 액션</CardTitle>
+              <CardTitle>이벤트 상태</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <Button variant="outline" className="w-full justify-start">
-                <FileText className="w-4 h-4 mr-2" />
-                실적 데이터 입력
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                <FileText className="w-4 h-4 mr-2" />
-                보고서 생성
-              </Button>
-              <Button variant="outline" className="w-full justify-start" asChild>
-                <Link to={`/events/${currentEvent.id}/edit`}>
-                  <Edit className="w-4 h-4 mr-2" />
-                  이벤트 수정
-                </Link>
-              </Button>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">현재 상태</span>
+                  <Badge className={getStatusColor(currentEvent.status)}>
+                    {currentEvent.status}
+                  </Badge>
+                </div>
+                
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">생성일</span>
+                  <span className="text-sm font-medium">
+                    {new Date(currentEvent.created_at).toLocaleDateString('ko-KR')}
+                  </span>
+                </div>
+                
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">최근 수정</span>
+                  <span className="text-sm font-medium">
+                    {new Date(currentEvent.updated_at).toLocaleDateString('ko-KR')}
+                  </span>
+                </div>
+
+                <div className="pt-3 border-t border-border">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">전체 효율성</span>
+                    <span className="text-sm font-medium text-primary">
+                      {currentEvent.efficiency}%
+                    </span>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
