@@ -91,7 +91,7 @@ const Analytics = () => {
     }
   }
 
-  React.useEffect(() => {
+  useEffect(() => {
     // 초기 로드시 월간 데이터 자동 로드
     handleSearch()
   }, [])
