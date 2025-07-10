@@ -50,6 +50,66 @@ export type Database = {
         }
         Relationships: []
       }
+      events: {
+        Row: {
+          actual_contracts: number | null
+          actual_estimates: number | null
+          actual_sqm: number | null
+          created_at: string
+          efficiency: number | null
+          end_date: string
+          id: string
+          partner: string | null
+          start_date: string
+          status: string
+          target_contracts: number | null
+          target_estimates: number | null
+          target_sqm: number | null
+          title: string
+          total_cost: number | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          actual_contracts?: number | null
+          actual_estimates?: number | null
+          actual_sqm?: number | null
+          created_at?: string
+          efficiency?: number | null
+          end_date: string
+          id?: string
+          partner?: string | null
+          start_date: string
+          status?: string
+          target_contracts?: number | null
+          target_estimates?: number | null
+          target_sqm?: number | null
+          title: string
+          total_cost?: number | null
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          actual_contracts?: number | null
+          actual_estimates?: number | null
+          actual_sqm?: number | null
+          created_at?: string
+          efficiency?: number | null
+          end_date?: string
+          id?: string
+          partner?: string | null
+          start_date?: string
+          status?: string
+          target_contracts?: number | null
+          target_estimates?: number | null
+          target_sqm?: number | null
+          title?: string
+          total_cost?: number | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
