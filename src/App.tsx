@@ -15,6 +15,9 @@ import Analytics from "./pages/Analytics";
 import Auth from "./pages/Auth";
 import Reports from "./pages/Reports";
 import ReportCreate from "./pages/ReportCreate";
+import EventManagersManagement from "./pages/EventManagersManagement";
+import PartnersManagement from "./pages/PartnersManagement";
+import LocationsManagement from "./pages/LocationsManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +43,9 @@ const App = () => (
                     <Route path="/analytics" element={<Analytics />} />
                     <Route path="/reports" element={<Reports />} />
                     <Route path="/reports/create" element={<ReportCreate />} />
+                    <Route path="/management/managers" element={<EventManagersManagement />} />
+                    <Route path="/management/partners" element={<PartnersManagement />} />
+                    <Route path="/management/locations" element={<LocationsManagement />} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>
