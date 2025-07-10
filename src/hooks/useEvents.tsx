@@ -88,20 +88,20 @@ export const useEvents = () => {
     }
   }
 
-  // 월별 이벤트 조회
+  // 월별 이벤트 조회 - 해당 월에 시작하는 이벤트만
   const fetchEventsByMonth = async (year: string, month: string) => {
     try {
       setLoading(true)
       setError(null)
       
-      const startDate = `${year}-${month.padStart(2, '0')}-01`
-      const endDate = `${year}-${month.padStart(2, '0')}-${new Date(parseInt(year), parseInt(month), 0).getDate().toString().padStart(2, '0')}`
+      const nextMonth = parseInt(month) === 12 ? '01' : (parseInt(month) + 1).toString().padStart(2, '0')
+      const nextYear = parseInt(month) === 12 ? (parseInt(year) + 1).toString() : year
       
       const { data, error } = await supabase
         .from('events')
         .select('*')
-        .gte('start_date', startDate)
-        .lte('start_date', endDate)
+        .gte('start_date', `${year}-${month.padStart(2, '0')}-01`)
+        .lt('start_date', `${nextYear}-${nextMonth}-01`)
         .order('start_date', { ascending: false })
 
       if (error) {
