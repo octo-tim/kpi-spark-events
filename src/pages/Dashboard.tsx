@@ -52,65 +52,54 @@ const Dashboard = () => {
 
   const kpiData = calculateKPIFromEvents(events)
 
-  const channelPerformanceData = [
-    { channel: '라이브커머스', contracts: 145, estimates: 320, sqm: 4200, totalCost: 63000000, costPerSqm: 15000 },
-    { channel: '베이비페어', contracts: 89, estimates: 180, sqm: 3100, totalCost: 46500000, costPerSqm: 15000 },
-    { channel: '입주박람회', contracts: 67, estimates: 150, sqm: 2800, totalCost: 42000000, costPerSqm: 15000 },
-    { channel: '인플루언서공구', contracts: 34, estimates: 90, sqm: 1500, totalCost: 22500000, costPerSqm: 15000 }
-  ]
+  // 실제 데이터에서 채널별 성과 계산
+  const channelPerformanceData = useMemo(() => {
+    const channelMap: { [key: string]: any } = {}
+    
+    events.forEach(event => {
+      if (!channelMap[event.type]) {
+        channelMap[event.type] = {
+          channel: event.type,
+          contracts: 0,
+          estimates: 0,
+          sqm: 0,
+          totalCost: 0,
+          costPerSqm: 0
+        }
+      }
+      
+      channelMap[event.type].contracts += event.actual_contracts || 0
+      channelMap[event.type].estimates += event.actual_estimates || 0
+      channelMap[event.type].sqm += event.actual_sqm || 0
+      channelMap[event.type].totalCost += Number(event.total_cost) || 0
+    })
+    
+    return Object.values(channelMap).map((item: any) => ({
+      ...item,
+      costPerSqm: item.sqm > 0 ? Math.round(item.totalCost / item.sqm) : 0
+    }))
+  }, [events])
 
-  const recentEvents: EventData[] = [
-    {
-      id: '1',
-      title: '신혼가구 타겟 라이브 쇼핑',
-      type: '라이브커머스',
-      status: '진행중',
-      startDate: '2024-01-15',
-      endDate: '2024-01-20',
-      partner: '네이버 쇼핑라이브',
-      targetContracts: 50,
-      actualContracts: 32,
-      targetEstimates: 120,
-      actualEstimates: 95,
-      targetSqm: 1500,
-      actualSqm: 960,
-      totalCost: 15000000,
-      costPerSqm: 15625
-    },
-    {
-      id: '2',
-      title: '서울 베이비&키즈 페어 2024',
-      type: '베이비페어',
-      status: '완료',
-      startDate: '2024-01-08',
-      endDate: '2024-01-14',
-      location: '킨텍스 제2전시장',
-      partner: '베이비페어 조직위',
-      targetContracts: 80,
-      actualContracts: 95,
-      targetEstimates: 200,
-      actualEstimates: 215,
-      targetSqm: 2400,
-      actualSqm: 2850,
-      totalCost: 28500000,
-      costPerSqm: 10000
-    },
-    {
-      id: '3',
-      title: '분당 신도시 입주박람회',
-      type: '입주박람회',
-      status: '계획중',
-      startDate: '2024-02-01',
-      endDate: '2024-02-03',
-      location: '분당 시티몰',
-      partner: '분당신도시개발',
-      targetContracts: 35,
-      targetEstimates: 85,
-      targetSqm: 1200,
-      totalCost: 12000000,
-      costPerSqm: 10000
-    }
-  ]
+  // 실제 데이터에서 최근 이벤트 가져오기
+  const recentEvents: EventData[] = useMemo(() => {
+    return events.slice(0, 6).map(event => ({
+      id: event.id,
+      title: event.title,
+      type: event.type as any,
+      status: event.status as any,
+      startDate: event.start_date,
+      endDate: event.end_date,
+      partner: event.partner || '',
+      targetContracts: event.target_contracts || 0,
+      actualContracts: event.actual_contracts || 0,
+      targetEstimates: event.target_estimates || 0,
+      actualEstimates: event.actual_estimates || 0,
+      targetSqm: event.target_sqm || 0,
+      actualSqm: event.actual_sqm || 0,
+      totalCost: Number(event.total_cost) || 0,
+      costPerSqm: event.actual_sqm ? Math.round((Number(event.total_cost) || 0) / event.actual_sqm) : 0
+    }))
+  }, [events])
 
   const handlePeriodChange = (value: string) => {
     setPeriodFilter(value)
