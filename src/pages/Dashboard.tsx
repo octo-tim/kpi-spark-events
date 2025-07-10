@@ -6,9 +6,11 @@ import { Loader2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import KPICard from '@/components/KPICard'
 import EventCard, { EventData } from '@/components/EventCard'
+import { useEvents } from '@/hooks/useEvents'
 
 const Dashboard = () => {
   const { toast } = useToast()
+  const { events, loading, fetchEventsByMonth } = useEvents()
   const [periodFilter, setPeriodFilter] = useState('monthly')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -33,13 +35,22 @@ const Dashboard = () => {
     recentEvents: EventData[]
   } | null>(null)
 
-  // 샘플 데이터 - 추후 Supabase 연동 시 실제 데이터로 교체
-  const kpiData = {
-    totalContracts: { current: 234, target: 300, trend: 'up', trendValue: 12 },
-    totalEstimates: { current: 567, target: 600, trend: 'up', trendValue: 8 },
-    totalSqm: { current: 15420, target: 18000, trend: 'down', trendValue: -3 },
-    monthlyRevenue: { current: 8500000, target: 10000000, trend: 'up', trendValue: 15 }
+  // 실제 데이터 기반 KPI 계산
+  const calculateKPIFromEvents = (events: any[]) => {
+    const totalContracts = events.reduce((sum, e) => sum + (e.actual_contracts || 0), 0)
+    const totalEstimates = events.reduce((sum, e) => sum + (e.actual_estimates || 0), 0)
+    const totalSqm = events.reduce((sum, e) => sum + (e.actual_sqm || 0), 0)
+    const totalCost = events.reduce((sum, e) => sum + (e.total_cost || 0), 0)
+    
+    return {
+      totalContracts: { current: totalContracts, target: 300, trend: 'up', trendValue: 12 },
+      totalEstimates: { current: totalEstimates, target: 600, trend: 'up', trendValue: 8 },
+      totalSqm: { current: totalSqm, target: 18000, trend: 'down', trendValue: -3 },
+      monthlyRevenue: { current: totalCost, target: 10000000, trend: 'up', trendValue: 15 }
+    }
   }
+
+  const kpiData = calculateKPIFromEvents(events)
 
   const channelPerformanceData = [
     { channel: '라이브커머스', contracts: 145, estimates: 320, sqm: 4200, totalCost: 63000000, costPerSqm: 15000 },
@@ -111,7 +122,7 @@ const Dashboard = () => {
     }
   }
 
-  // 개선된 필터링 함수 - 비동기 처리와 에러 핸들링 추가
+  // 실제 데이터베이스를 사용한 필터링 함수
   const filterData = useCallback(async (period: string, start: string, end: string) => {
     try {
       setIsFiltering(true)
@@ -125,130 +136,67 @@ const Dashboard = () => {
       // 짧은 딜레이로 로딩 상태 표시 (UX 개선)
       await new Promise(resolve => setTimeout(resolve, 300))
 
-      let monthlyData
+      let filteredEvents: any[] = []
       
-      // 월별로 실제 다른 데이터 생성
+      // 실제 데이터베이스에서 데이터 조회
       if (period === 'monthly' && start) {
         const [year, month] = start.split('-')
-        const monthNum = parseInt(month)
-        
-        // 월별 시즌성 반영 (1월=높음, 7-8월=낮음, 12월=높음)
-        const seasonality = monthNum <= 3 || monthNum >= 11 ? 1.2 : 
-                          monthNum >= 7 && monthNum <= 8 ? 0.7 : 1.0
-        
-        // 월별 성장률 (전년 대비)
-        const growthRate = 1 + (monthNum * 0.02) // 매월 2% 성장
-        
-        monthlyData = {
-          kpi: {
-            totalContracts: Math.round(180 * seasonality * growthRate + Math.random() * 20),
-            totalEstimates: Math.round(420 * seasonality * growthRate + Math.random() * 30),
-            totalSqm: Math.round(11000 * seasonality * growthRate + Math.random() * 500),
-            monthlyRevenue: Math.round(6500000 * seasonality * growthRate + Math.random() * 1000000)
-          },
-          channels: [
-            {
-              channel: '라이브커머스',
-              contracts: Math.round(110 * seasonality * growthRate + Math.random() * 15),
-              estimates: Math.round(250 * seasonality * growthRate + Math.random() * 20),
-              sqm: Math.round(3200 * seasonality * growthRate + Math.random() * 200),
-              totalCost: Math.round(48000000 * seasonality * growthRate),
-              costPerSqm: 15000
-            },
-            {
-              channel: '베이비페어',
-              contracts: Math.round(67 * seasonality * growthRate + Math.random() * 10),
-              estimates: Math.round(140 * seasonality * growthRate + Math.random() * 15),
-              sqm: Math.round(2300 * seasonality * growthRate + Math.random() * 150),
-              totalCost: Math.round(34500000 * seasonality * growthRate),
-              costPerSqm: 15000
-            },
-            {
-              channel: '입주박람회',
-              contracts: Math.round(51 * seasonality * growthRate + Math.random() * 8),
-              estimates: Math.round(115 * seasonality * growthRate + Math.random() * 12),
-              sqm: Math.round(2100 * seasonality * growthRate + Math.random() * 100),
-              totalCost: Math.round(31500000 * seasonality * growthRate),
-              costPerSqm: 15000
-            },
-            {
-              channel: '인플루언서공구',
-              contracts: Math.round(26 * seasonality * growthRate + Math.random() * 5),
-              estimates: Math.round(68 * seasonality * growthRate + Math.random() * 8),
-              sqm: Math.round(1100 * seasonality * growthRate + Math.random() * 80),
-              totalCost: Math.round(16500000 * seasonality * growthRate),
-              costPerSqm: 15000
-            }
-          ]
-        }
-      } else if (period === 'quarterly' && start) {
-        // 분기별 데이터
-        const quarterMultiplier = start.includes('Q1') ? 1.1 : 
-                                start.includes('Q2') ? 0.9 : 
-                                start.includes('Q3') ? 0.8 : 1.3
-        
-        monthlyData = {
-          kpi: {
-            totalContracts: Math.round(kpiData.totalContracts.current * quarterMultiplier),
-            totalEstimates: Math.round(kpiData.totalEstimates.current * quarterMultiplier),
-            totalSqm: Math.round(kpiData.totalSqm.current * quarterMultiplier),
-            monthlyRevenue: Math.round(kpiData.monthlyRevenue.current * quarterMultiplier)
-          },
-          channels: channelPerformanceData.map(channel => ({
-            ...channel,
-            contracts: Math.round(channel.contracts * quarterMultiplier),
-            estimates: Math.round(channel.estimates * quarterMultiplier),
-            sqm: Math.round(channel.sqm * quarterMultiplier),
-            totalCost: Math.round(channel.totalCost * quarterMultiplier),
-            costPerSqm: channel.costPerSqm
-          }))
-        }
-      } else if (period === 'custom' && start && end) {
-        // 사용자 정의 기간
-        const daysDiff = Math.ceil((new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24))
-        const customMultiplier = Math.min(daysDiff / 30, 1.5) // 최대 1.5배
-        
-        monthlyData = {
-          kpi: {
-            totalContracts: Math.round(kpiData.totalContracts.current * customMultiplier),
-            totalEstimates: Math.round(kpiData.totalEstimates.current * customMultiplier),
-            totalSqm: Math.round(kpiData.totalSqm.current * customMultiplier),
-            monthlyRevenue: Math.round(kpiData.monthlyRevenue.current * customMultiplier)
-          },
-          channels: channelPerformanceData.map(channel => ({
-            ...channel,
-            contracts: Math.round(channel.contracts * customMultiplier),
-            estimates: Math.round(channel.estimates * customMultiplier),
-            sqm: Math.round(channel.sqm * customMultiplier),
-            totalCost: Math.round(channel.totalCost * customMultiplier),
-            costPerSqm: channel.costPerSqm
-          }))
-        }
+        filteredEvents = await fetchEventsByMonth(year, month)
       } else {
-        return
+        // 다른 기간은 추후 구현
+        filteredEvents = events
       }
 
-      const filteredKpiData = monthlyData.kpi
-      const filteredChannelData = monthlyData.channels
+      // 실제 데이터 기반 KPI 계산
+      const filteredKpiData = {
+        totalContracts: filteredEvents.reduce((sum, e) => sum + (e.actual_contracts || 0), 0),
+        totalEstimates: filteredEvents.reduce((sum, e) => sum + (e.actual_estimates || 0), 0),
+        totalSqm: filteredEvents.reduce((sum, e) => sum + (e.actual_sqm || 0), 0),
+        monthlyRevenue: filteredEvents.reduce((sum, e) => sum + (e.total_cost || 0), 0)
+      }
 
-      // 필터링된 이벤트 데이터
-      const filteredEvents = recentEvents.filter(event => {
-        if (period === 'monthly' && start) {
-          const eventDate = new Date(event.startDate)
-          const [year, month] = start.split('-')
-          return eventDate.getFullYear().toString() === year && 
-                 (eventDate.getMonth() + 1).toString().padStart(2, '0') === month
-        } else if (period === 'quarterly' && start) {
-          const eventDate = new Date(event.startDate)
-          const year = eventDate.getFullYear()
-          const quarter = Math.ceil((eventDate.getMonth() + 1) / 3)
-          return start === `${year}-Q${quarter}`
-        } else if (period === 'custom' && start && end) {
-          const eventDate = new Date(event.startDate)
-          return eventDate >= new Date(start) && eventDate <= new Date(end)
+      // 실제 데이터 기반 채널별 성과 계산
+      const channelMap: { [key: string]: any } = {}
+      filteredEvents.forEach(event => {
+        if (!channelMap[event.type]) {
+          channelMap[event.type] = {
+            channel: event.type,
+            contracts: 0,
+            estimates: 0,
+            sqm: 0,
+            totalCost: 0,
+            costPerSqm: 0
+          }
         }
-        return true
+        channelMap[event.type].contracts += event.actual_contracts || 0
+        channelMap[event.type].estimates += event.actual_estimates || 0
+        channelMap[event.type].sqm += event.actual_sqm || 0
+        channelMap[event.type].totalCost += event.total_cost || 0
       })
+
+      const filteredChannelData = Object.values(channelMap).map((channel: any) => ({
+        ...channel,
+        costPerSqm: channel.sqm > 0 ? Math.round(channel.totalCost / channel.sqm) : 0
+      }))
+
+      // 이벤트 데이터를 EventData 형식으로 변환
+      const convertedEvents: EventData[] = filteredEvents.map(event => ({
+        id: event.id,
+        title: event.title,
+        type: event.type,
+        status: event.status,
+        startDate: event.start_date,
+        endDate: event.end_date,
+        partner: event.partner || '',
+        targetContracts: event.target_contracts || 0,
+        actualContracts: event.actual_contracts || 0,
+        targetEstimates: event.target_estimates || 0,
+        actualEstimates: event.actual_estimates || 0,
+        targetSqm: event.target_sqm || 0,
+        actualSqm: event.actual_sqm || 0,
+        totalCost: event.total_cost || 0,
+        costPerSqm: event.actual_sqm > 0 ? Math.round((event.total_cost || 0) / event.actual_sqm) : 0
+      }))
 
       // 메시지 생성
       let message = ''
@@ -271,7 +219,7 @@ const Dashboard = () => {
         message,
         kpiData: filteredKpiData,
         channelData: filteredChannelData,
-        recentEvents: filteredEvents
+        recentEvents: convertedEvents
       }
 
       // 강제 리렌더링을 위한 key 변경
@@ -294,7 +242,7 @@ const Dashboard = () => {
     } finally {
       setIsFiltering(false)
     }
-  }, [kpiData, channelPerformanceData, recentEvents, toast])
+  }, [events, fetchEventsByMonth, toast])
 
   // filteredData 변화 모니터링
   React.useEffect(() => {
