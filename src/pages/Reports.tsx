@@ -5,6 +5,7 @@ import { PeriodSelector } from '@/components/reports/PeriodSelector'
 import { EventTypeTable } from '@/components/reports/EventTypeTable'
 import { PerformanceCharts } from '@/components/reports/PerformanceCharts'
 import { ReportSummary } from '@/components/reports/ReportSummary'
+import { MonthlyTrendsChart } from '@/components/reports/MonthlyTrendsChart'
 
 const Reports = () => {
   const { events, loading, fetchEventsByMonth, fetchEventsByQuarter, fetchEventsByPeriod } = useEvents()
@@ -119,6 +120,9 @@ const Reports = () => {
             events={filteredEvents}
             title="2. 주요 성과지표별 실적 그래프"
           />
+
+          {/* 2025년 월별 실적 그래프 */}
+          <MonthlyTrendsChart events={events} />
         </>
       )}
 
