@@ -24,22 +24,20 @@ const EventList = () => {
   
   const { events, loading, fetchEventsByMonth, fetchEventsByQuarter, fetchEventsByPeriod } = useEvents()
 
-  // 기간 선택 시 기본값 설정
+  // 기간 선택 시 기본값 설정 (periodType이 변경될 때만)
   useEffect(() => {
-    if (!selectedPeriod) {
-      if (periodType === 'month') {
-        const now = new Date()
-        const currentPeriod = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`
-        setSelectedPeriod(currentPeriod)
-      } else if (periodType === 'quarter') {
-        const now = new Date()
-        const currentQuarter = Math.ceil((now.getMonth() + 1) / 3)
-        setSelectedPeriod(`${now.getFullYear()}-Q${currentQuarter}`)
-      } else if (periodType === 'range') {
-        setSelectedPeriod('2025')
-      }
+    if (periodType === 'month') {
+      const now = new Date()
+      const currentPeriod = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`
+      setSelectedPeriod(currentPeriod)
+    } else if (periodType === 'quarter') {
+      const now = new Date()
+      const currentQuarter = Math.ceil((now.getMonth() + 1) / 3)
+      setSelectedPeriod(`${now.getFullYear()}-Q${currentQuarter}`)
+    } else if (periodType === 'range') {
+      setSelectedPeriod('2025')
     }
-  }, [periodType, selectedPeriod])
+  }, [periodType]) // selectedPeriod를 의존성에서 제거
 
   // 기간별 필터링된 이벤트 목록 계산 (메모이제이션)
   const filteredByPeriodEvents = useMemo(() => {
