@@ -38,6 +38,7 @@ const Analytics = () => {
   const [endYear, setEndYear] = useState('2024')
   const [endMonth, setEndMonth] = useState('12')
   const [filteredStats, setFilteredStats] = useState<any>(null)
+  const [channelStats, setChannelStats] = useState<any[]>([])
   const [eventTableFilter, setEventTableFilter] = useState('all')
   const [eventSearchStartYear, setEventSearchStartYear] = useState('2024')
   const [eventSearchStartMonth, setEventSearchStartMonth] = useState('01')
@@ -89,6 +90,10 @@ const Analytics = () => {
         costPerSqm,
         filteredEventData
       })
+
+      // 채널 통계 계산
+      const stats = await getChannelStats(filteredEventData, selectedYear, selectedMonth)
+      setChannelStats(stats)
       
     } catch (error) {
       console.error('검색 중 오류 발생:', error)
@@ -132,33 +137,93 @@ ${filteredStats.message}
     alert('리포트가 다운로드되었습니다!')
   }
   
+  // 전월 데이터 가져오기 함수
+  const getPreviousMonthData = async (currentYear: string, currentMonth: string) => {
+    try {
+      const year = parseInt(currentYear)
+      const month = parseInt(currentMonth)
+      const prevMonth = month === 1 ? 12 : month - 1
+      const prevYear = month === 1 ? year - 1 : year
+      
+      return await fetchEventsByMonth(prevYear.toString(), prevMonth.toString().padStart(2, '0'))
+    } catch (error) {
+      console.error('전월 데이터 조회 오류:', error)
+      return []
+    }
+  }
+
   // 실제 데이터 기반 통계 계산
-  const getChannelStats = (events: Event[]) => {
+  const getChannelStats = async (currentEvents: Event[], currentYear: string, currentMonth: string) => {
     const channelMap: { [key: string]: Event[] } = {}
     
-    events.forEach(event => {
+    currentEvents.forEach(event => {
       if (!channelMap[event.type]) {
         channelMap[event.type] = []
       }
       channelMap[event.type].push(event)
     })
+
+    // 전월 데이터 가져오기
+    const previousMonthEvents = await getPreviousMonthData(currentYear, currentMonth)
+    const prevChannelMap: { [key: string]: Event[] } = {}
     
-    return Object.entries(channelMap).map(([channel, channelEvents]) => ({
-      channel,
-      totalEvents: channelEvents.length,
-      completedEvents: channelEvents.filter(e => e.status === '완료').length,
-      totalContracts: channelEvents.reduce((sum, e) => sum + e.actual_contracts, 0),
-      totalEstimates: channelEvents.reduce((sum, e) => sum + e.actual_estimates, 0),
-      totalSqm: channelEvents.reduce((sum, e) => sum + e.actual_sqm, 0),
-      avgContractRate: channelEvents.length > 0 
-        ? channelEvents.reduce((sum, e) => sum + (e.actual_contracts / e.target_contracts * 100), 0) / channelEvents.length 
-        : 0,
-      trend: 'up',
-      trendValue: 0
-    }))
+    previousMonthEvents.forEach(event => {
+      if (!prevChannelMap[event.type]) {
+        prevChannelMap[event.type] = []
+      }
+      prevChannelMap[event.type].push(event)
+    })
+    
+    return Object.entries(channelMap).map(([channel, channelEvents]) => {
+      const currentContracts = channelEvents.reduce((sum, e) => sum + e.actual_contracts, 0)
+      const currentTargetContracts = channelEvents.reduce((sum, e) => sum + e.target_contracts, 0)
+      const currentEstimates = channelEvents.reduce((sum, e) => sum + e.actual_estimates, 0)
+      const currentTargetEstimates = channelEvents.reduce((sum, e) => sum + e.target_estimates, 0)
+      
+      // 전월 데이터
+      const prevChannelEvents = prevChannelMap[channel] || []
+      const prevContracts = prevChannelEvents.reduce((sum, e) => sum + e.actual_contracts, 0)
+      
+      // 전월 대비 계산
+      const trendValue = prevContracts > 0 ? Math.round(((currentContracts - prevContracts) / prevContracts) * 100) : 0
+      const trend = trendValue >= 0 ? 'up' : 'down'
+      
+      // 목표 대비 달성률
+      const goalAchievementRate = currentTargetContracts > 0 ? Math.round((currentContracts / currentTargetContracts) * 100) : 0
+      
+      // 다음달 목표 (현재 목표의 110% 또는 현재 실적의 115%)
+      const nextMonthTargetContracts = Math.max(
+        Math.round(currentTargetContracts * 1.1), 
+        Math.round(currentContracts * 1.15)
+      )
+      const nextMonthTargetEstimates = Math.max(
+        Math.round(currentTargetEstimates * 1.1), 
+        Math.round(currentEstimates * 1.15)
+      )
+
+      return {
+        channel,
+        totalEvents: channelEvents.length,
+        completedEvents: channelEvents.filter(e => e.status === '완료').length,
+        totalContracts: currentContracts,
+        totalEstimates: currentEstimates,
+        totalSqm: channelEvents.reduce((sum, e) => sum + e.actual_sqm, 0),
+        targetContracts: currentTargetContracts,
+        targetEstimates: currentTargetEstimates,
+        prevContracts,
+        trendValue,
+        trend,
+        goalAchievementRate,
+        nextMonthTargetContracts,
+        nextMonthTargetEstimates,
+        avgContractRate: channelEvents.length > 0 
+          ? channelEvents.reduce((sum, e) => sum + (e.actual_contracts / Math.max(e.target_contracts, 1) * 100), 0) / channelEvents.length 
+          : 0
+      }
+    })
   }
 
-  const channelStats = getChannelStats(filteredStats?.filteredEventData || events)
+  
 
   // 실제 데이터 기반 상위 성과 이벤트
   const topPerformingEvents = (filteredStats?.filteredEventData || events)
@@ -526,17 +591,17 @@ ${filteredStats.message}
                       </span>
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      전월: {Math.round(channel.totalContracts * 0.9)}건
+                      전월: {channel.prevContracts || 0}건
                     </div>
                   </div>
                   
                   <div className="space-y-2">
                     <div className="text-sm text-muted-foreground">목표 대비</div>
                     <div className="font-bold text-primary">
-                      {Math.round((channel.totalContracts / (channel.totalContracts * 1.2)) * 100)}%
+                      {channel.goalAchievementRate || 0}%
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      목표: {Math.round(channel.totalContracts * 1.2)}건
+                      목표: {channel.targetContracts || 0}건
                     </div>
                   </div>
                   
@@ -569,11 +634,11 @@ ${filteredStats.message}
                 <h4 className="font-semibold mb-2">{channel.channel}</h4>
                 <div className="space-y-2">
                   <div className="text-lg font-bold text-primary">
-                    {Math.round(channel.totalContracts * 1.15)}건
+                    {channel.nextMonthTargetContracts || 0}건
                   </div>
                   <div className="text-xs text-muted-foreground">목표 계약</div>
                   <div className="text-sm">
-                    {Math.round(channel.totalEstimates * 1.1)}건 견적
+                    {channel.nextMonthTargetEstimates || 0}건 견적
                   </div>
                 </div>
               </div>
