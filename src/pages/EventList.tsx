@@ -28,7 +28,10 @@ const EventList = () => {
   // 기간별 이벤트 조회
   useEffect(() => {
     const fetchPeriodEvents = async () => {
+      console.log('EventList 기간별 조회 - periodType:', periodType, 'selectedPeriod:', selectedPeriod)
+      
       if (!selectedPeriod) {
+        console.log('EventList - selectedPeriod가 없어서 전체 이벤트 사용:', events.length)
         setFilteredByPeriodEvents(events)
         return
       }
@@ -38,11 +41,14 @@ const EventList = () => {
         
         if (periodType === 'month') {
           const [year, month] = selectedPeriod.split('-')
+          console.log('EventList - 월별 조회:', year, month)
           periodEvents = await fetchEventsByMonth(year, month)
         } else if (periodType === 'quarter') {
           const [year, quarter] = selectedPeriod.split('-Q')
+          console.log('EventList - 분기별 조회:', year, quarter)
           periodEvents = await fetchEventsByQuarter(year, quarter)
         } else if (periodType === 'range') {
+          console.log('EventList - 기간별 조회:', selectedPeriod)
           if (selectedPeriod === '2025') {
             periodEvents = await fetchEventsByPeriod('2025-01-01', '2025-12-31')
           } else if (selectedPeriod === '2024') {
@@ -56,6 +62,7 @@ const EventList = () => {
           }
         }
         
+        console.log('EventList - 조회된 이벤트 수:', periodEvents.length)
         setFilteredByPeriodEvents(periodEvents)
       } catch (error) {
         console.error('기간별 이벤트 조회 중 오류:', error)
