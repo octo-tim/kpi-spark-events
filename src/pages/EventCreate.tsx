@@ -249,10 +249,10 @@ const EventCreate = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="type">이벤트 유형 *</Label>
+                <Label htmlFor="type">채널구분 *</Label>
                 <Select value={formData.type} onValueChange={(value) => handleInputChange('type', value)}>
                   <SelectTrigger>
-                    <SelectValue placeholder="이벤트 유형 선택" />
+                    <SelectValue placeholder="채널구분 선택" />
                   </SelectTrigger>
                   <SelectContent>
                     {eventTypes.map((type) => (
