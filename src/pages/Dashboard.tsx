@@ -332,7 +332,13 @@ const Dashboard = () => {
           title="총 계약건수"
           value={(() => {
             const value = filteredData?.kpiData.totalContracts ?? kpiData.totalContracts.current
-            console.log('KPI Card - 총 계약건수:', { filteredData: filteredData?.kpiData.totalContracts, original: kpiData.totalContracts.current, final: value })
+            console.log('=== KPI Card 렌더링 - 총 계약건수 ===', { 
+              hasFilteredData: !!filteredData,
+              filteredValue: filteredData?.kpiData.totalContracts, 
+              originalValue: kpiData.totalContracts.current, 
+              finalValue: value,
+              filteredDataObject: filteredData
+            })
             return value
           })()}
           target={kpiData.totalContracts.target}
@@ -342,7 +348,16 @@ const Dashboard = () => {
         />
         <KPICard
           title="총 견적건수"
-          value={filteredData?.kpiData.totalEstimates ?? kpiData.totalEstimates.current}
+          value={(() => {
+            const value = filteredData?.kpiData.totalEstimates ?? kpiData.totalEstimates.current
+            console.log('=== KPI Card 렌더링 - 총 견적건수 ===', { 
+              hasFilteredData: !!filteredData,
+              filteredValue: filteredData?.kpiData.totalEstimates, 
+              originalValue: kpiData.totalEstimates.current, 
+              finalValue: value 
+            })
+            return value
+          })()}
           target={kpiData.totalEstimates.target}
           unit="건"
           trend={kpiData.totalEstimates.trend as any}
@@ -350,7 +365,16 @@ const Dashboard = () => {
         />
         <KPICard
           title="총 계약장수"
-          value={filteredData?.kpiData.totalSqm ?? kpiData.totalSqm.current}
+          value={(() => {
+            const value = filteredData?.kpiData.totalSqm ?? kpiData.totalSqm.current
+            console.log('=== KPI Card 렌더링 - 총 계약장수 ===', { 
+              hasFilteredData: !!filteredData,
+              filteredValue: filteredData?.kpiData.totalSqm, 
+              originalValue: kpiData.totalSqm.current, 
+              finalValue: value 
+            })
+            return value
+          })()}
           target={kpiData.totalSqm.target}
           unit="장"
           trend={kpiData.totalSqm.trend as any}
@@ -358,7 +382,18 @@ const Dashboard = () => {
         />
         <KPICard
           title="장당비용"
-          value={filteredData?.kpiData.monthlyRevenue ? Math.round(filteredData.kpiData.monthlyRevenue / filteredData.kpiData.totalSqm) : Math.round(kpiData.monthlyRevenue.current / kpiData.totalSqm.current)}
+          value={(() => {
+            const value = filteredData?.kpiData.monthlyRevenue ? Math.round(filteredData.kpiData.monthlyRevenue / filteredData.kpiData.totalSqm) : Math.round(kpiData.monthlyRevenue.current / kpiData.totalSqm.current)
+            console.log('=== KPI Card 렌더링 - 장당비용 ===', { 
+              hasFilteredData: !!filteredData,
+              filteredRevenue: filteredData?.kpiData.monthlyRevenue,
+              filteredSqm: filteredData?.kpiData.totalSqm,
+              originalRevenue: kpiData.monthlyRevenue.current,
+              originalSqm: kpiData.totalSqm.current,
+              finalValue: value 
+            })
+            return value
+          })()}
           unit="원"
           trend="down"
           trendValue={-5}
