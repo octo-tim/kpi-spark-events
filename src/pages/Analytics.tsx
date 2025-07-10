@@ -261,16 +261,6 @@ ${filteredStats.message}
           </p>
       </div>
 
-      {/* 필터링 결과 표시 */}
-      {filteredStats && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <p className="text-green-800 font-medium">{filteredStats.message}</p>
-          <div className="flex space-x-4 mt-2 text-green-600 text-sm">
-            <span>이벤트: {filteredStats.totalEvents}개</span>
-            <span>계약: {filteredStats.totalContracts}건</span>
-          </div>
-        </div>
-      )}
         <div className="flex items-center space-x-4">
           <Select value={periodFilter} onValueChange={handlePeriodChange}>
             <SelectTrigger className="w-48">
