@@ -1,25 +1,26 @@
-import React, { useState } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import React, { useState, useRef, useEffect } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { ArrowLeft, Save, Plus, X, DollarSign, MessageSquare, Target, BarChart3, TrendingUp, Printer, Trash2 } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Badge } from '@/components/ui/badge'
+import { Calendar, MapPin, Users, Target, Plus, Trash2, Printer, Save, ArrowLeft, DollarSign, MessageSquare, BarChart3, TrendingUp, X } from 'lucide-react'
 import { EventType, EventStatus } from '@/components/EventCard'
+import { Link } from 'react-router-dom'
 import { useReactToPrint } from 'react-to-print'
-import { useRef } from 'react'
+import { supabase } from '@/integrations/supabase/client'
+import { useToast } from '@/hooks/use-toast'
+import { useEvents } from '@/hooks/useEvents'
 
 const EventEdit = () => {
-  const { id } = useParams()
   const navigate = useNavigate()
+  const { id } = useParams()
+  const { toast } = useToast()
+  const { events, loading } = useEvents()
   const printRef = useRef<HTMLDivElement>(null)
 
   // 기존 이벤트 데이터 로드 (샘플)
@@ -37,6 +38,7 @@ const EventEdit = () => {
     actualEstimates: '95',
     targetSqm: '1500',
     actualSqm: '960',
+    totalCost: '1450000',
     description: '신혼부부를 대상으로 한 맞춤형 인테리어 라이브 쇼핑 이벤트',
     contactPerson: '김영업',
     contactPhone: '010-1234-5678',
@@ -124,12 +126,56 @@ const EventEdit = () => {
     }, 0)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Supabase 연동 시 실제 데이터 수정 로직 구현
-    console.log('이벤트 수정:', formData)
-    // 임시로 상세 페이지로 이동
-    navigate(`/events/${id}`)
+    
+    if (!id) return
+
+    try {
+      const { data, error } = await supabase
+        .from('events')
+        .update({
+          title: formData.title,
+          type: formData.type,
+          status: formData.status,
+          start_date: formData.startDate,
+          end_date: formData.endDate,
+          partner: formData.partner,
+          target_contracts: parseInt(formData.targetContracts) || 0,
+          target_estimates: parseInt(formData.targetEstimates) || 0,
+          target_sqm: parseInt(formData.targetSqm) || 0,
+          actual_contracts: parseInt(formData.actualContracts) || 0,
+          actual_estimates: parseInt(formData.actualEstimates) || 0,
+          actual_sqm: parseInt(formData.actualSqm) || 0,
+          total_cost: parseInt(formData.totalCost) || 0
+        })
+        .eq('id', id)
+        .select()
+
+      if (error) {
+        console.error('이벤트 수정 오류:', error)
+        toast({
+          title: "오류",
+          description: "이벤트 수정 중 오류가 발생했습니다.",
+          variant: "destructive"
+        })
+        return
+      }
+
+      toast({
+        title: "성공",
+        description: "이벤트가 성공적으로 수정되었습니다."
+      })
+
+      navigate(`/events/${id}`)
+    } catch (error) {
+      console.error('이벤트 수정 오류:', error)
+      toast({
+        title: "오류",
+        description: "이벤트 수정 중 오류가 발생했습니다.",
+        variant: "destructive"
+      })
+    }
   }
 
   const handlePrint = useReactToPrint({

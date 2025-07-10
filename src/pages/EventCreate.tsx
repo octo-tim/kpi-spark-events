@@ -17,10 +17,13 @@ import { EventType } from '@/components/EventCard'
 import { useReactToPrint } from 'react-to-print'
 import { useRef, useEffect } from 'react'
 import { supabase } from '@/integrations/supabase/client'
+import { useToast } from '@/hooks/use-toast'
+import { EventStatus } from '@/components/EventCard'
 import EventManagerForm from '@/components/EventManagerForm'
 
 const EventCreate = () => {
   const navigate = useNavigate()
+  const { toast } = useToast()
   const printRef = useRef<HTMLDivElement>(null)
   const [formData, setFormData] = useState({
     title: '',
@@ -32,6 +35,8 @@ const EventCreate = () => {
     targetContracts: '',
     targetEstimates: '',
     targetSqm: '',
+    totalCost: '',
+    status: '계획중' as EventStatus,
     description: '',
     budget: '',
     contactPerson: '',
@@ -99,12 +104,52 @@ const EventCreate = () => {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Supabase 연동 시 실제 데이터 저장 로직 구현
-    console.log('이벤트 등록:', formData)
-    // 임시로 이벤트 목록으로 이동
-    navigate('/events')
+    
+    try {
+      const { data, error } = await supabase
+        .from('events')
+        .insert([
+          {
+            title: formData.title,
+            type: formData.type,
+            status: formData.status,
+            start_date: formData.startDate,
+            end_date: formData.endDate,
+            partner: formData.partner,
+            target_contracts: parseInt(formData.targetContracts) || 0,
+            target_estimates: parseInt(formData.targetEstimates) || 0,
+            target_sqm: parseInt(formData.targetSqm) || 0,
+            total_cost: parseInt(formData.totalCost) || 0
+          }
+        ])
+        .select()
+
+      if (error) {
+        console.error('이벤트 생성 오류:', error)
+        toast({
+          title: "오류",
+          description: "이벤트 생성 중 오류가 발생했습니다.",
+          variant: "destructive"
+        })
+        return
+      }
+
+      toast({
+        title: "성공",
+        description: "이벤트가 성공적으로 생성되었습니다."
+      })
+
+      navigate('/events')
+    } catch (error) {
+      console.error('이벤트 생성 오류:', error)
+      toast({
+        title: "오류",
+        description: "이벤트 생성 중 오류가 발생했습니다.",
+        variant: "destructive"
+      })
+    }
   }
 
   const handlePrint = useReactToPrint({

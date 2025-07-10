@@ -1,15 +1,9 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { 
   Download, 
   FileText, 
@@ -17,76 +11,142 @@ import {
   BarChart3,
   TrendingUp,
   Eye,
-  Filter
+  Filter,
+  Plus,
+  Search,
+  Loader2
 } from 'lucide-react'
+import { useEvents } from '@/hooks/useEvents'
+
+// 리포트 타입 정의
+interface Report {
+  id: string
+  title: string
+  type: 'quarterly' | 'monthly' | 'event' | 'channel'
+  period: string
+  generatedDate: string
+  channels: string[]
+  totalEvents: number
+  totalContracts: number
+  achievementRate: number
+  status: 'completed' | 'draft'
+}
 
 const Reports = () => {
+  const { events, loading } = useEvents()
   const [filterPeriod, setFilterPeriod] = useState('all')
   const [filterType, setFilterType] = useState('all')
-  const [periodFilter, setPeriodFilter] = useState('monthly')
-  const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
-  const [filteredReports, setFilteredReports] = useState(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filteredReports, setFilteredReports] = useState<{data: Report[]} | null>(null)
 
-  const handlePeriodChange = (value: string) => {
-    setPeriodFilter(value)
-    if (value !== 'custom') {
-      setStartDate('')
-      setEndDate('')
-      setFilteredReports(null)
-    }
+  // 실제 데이터를 기반으로 리포트 생성
+  const generateReportsFromData = (): Report[] => {
+    if (!events.length) return []
+    
+    const reports: Report[] = []
+    
+    // 월별 리포트 생성 (최근 6개월)
+    const months = ['2024-07', '2024-06', '2024-05', '2024-04', '2024-03', '2024-02']
+    months.forEach((month) => {
+      const [year, monthNum] = month.split('-')
+      const monthEvents = events.filter(event => 
+        event.start_date.startsWith(month)
+      )
+      
+      if (monthEvents.length > 0) {
+        const totalContracts = monthEvents.reduce((sum, e) => sum + (e.actual_contracts || 0), 0)
+        const targetContracts = monthEvents.reduce((sum, e) => sum + (e.target_contracts || 0), 0)
+        const achievementRate = targetContracts > 0 ? (totalContracts / targetContracts) * 100 : 0
+        
+        reports.push({
+          id: `monthly-${month}`,
+          title: `${year}년 ${parseInt(monthNum)}월 월간 성과 리포트`,
+          type: 'monthly',
+          period: `${year}년 ${parseInt(monthNum)}월`,
+          generatedDate: new Date().toISOString().split('T')[0],
+          channels: [...new Set(monthEvents.map(e => e.type))],
+          totalEvents: monthEvents.length,
+          totalContracts,
+          achievementRate: Math.round(achievementRate * 10) / 10,
+          status: 'completed'
+        })
+      }
+    })
+    
+    // 분기별 리포트 생성
+    const quarters = [
+      { period: '2024-Q2', months: ['2024-04', '2024-05', '2024-06'], label: '2024년 2분기' },
+      { period: '2024-Q1', months: ['2024-01', '2024-02', '2024-03'], label: '2024년 1분기' }
+    ]
+    
+    quarters.forEach((quarter) => {
+      const quarterEvents = events.filter(event => 
+        quarter.months.some(month => event.start_date.startsWith(month))
+      )
+      
+      if (quarterEvents.length > 0) {
+        const totalContracts = quarterEvents.reduce((sum, e) => sum + (e.actual_contracts || 0), 0)
+        const targetContracts = quarterEvents.reduce((sum, e) => sum + (e.target_contracts || 0), 0)
+        const achievementRate = targetContracts > 0 ? (totalContracts / targetContracts) * 100 : 0
+        
+        reports.push({
+          id: `quarterly-${quarter.period}`,
+          title: `${quarter.label} 종합 성과 리포트`,
+          type: 'quarterly',
+          period: quarter.label,
+          generatedDate: new Date().toISOString().split('T')[0],
+          channels: [...new Set(quarterEvents.map(e => e.type))],
+          totalEvents: quarterEvents.length,
+          totalContracts,
+          achievementRate: Math.round(achievementRate * 10) / 10,
+          status: 'completed'
+        })
+      }
+    })
+    
+    // 채널별 리포트 생성
+    const channelTypes = ['라이브커머스', '베이비페어', '입주박람회', '인플루언서공구']
+    channelTypes.forEach((channel) => {
+      const channelEvents = events.filter(event => event.type === channel)
+      
+      if (channelEvents.length > 0) {
+        const totalContracts = channelEvents.reduce((sum, e) => sum + (e.actual_contracts || 0), 0)
+        const targetContracts = channelEvents.reduce((sum, e) => sum + (e.target_contracts || 0), 0)
+        const achievementRate = targetContracts > 0 ? (totalContracts / targetContracts) * 100 : 0
+        
+        reports.push({
+          id: `channel-${channel}`,
+          title: `${channel} 채널 성과 분석`,
+          type: 'channel',
+          period: '2024년 전체',
+          generatedDate: new Date().toISOString().split('T')[0],
+          channels: [channel],
+          totalEvents: channelEvents.length,
+          totalContracts,
+          achievementRate: Math.round(achievementRate * 10) / 10,
+          status: 'completed'
+        })
+      }
+    })
+    
+    return reports.sort((a, b) => new Date(b.generatedDate).getTime() - new Date(a.generatedDate).getTime())
   }
 
-  const filterReports = (period: string, start: string, end: string) => {
-    console.log('Reports filtering:', { period, start, end })
-    
-    // 빈 값 체크
-    if (!period || (period === 'custom' && (!start || !end))) {
-      setFilteredReports(null)
-      return
-    }
-    
-    let filtered = reports
-    
-    if (period === 'monthly') {
-      filtered = reports.filter(r => r.type === 'monthly')
-      setFilteredReports({
-        message: '월간 리포트로 필터링됨',
-        data: filtered
-      })
-    } else if (period === 'quarterly') {
-      filtered = reports.filter(r => r.type === 'quarterly')
-      setFilteredReports({
-        message: '분기별 리포트로 필터링됨',
-        data: filtered
-      })
-    } else if (period === 'custom' && start && end) {
-      // 날짜 범위 필터링
-      filtered = reports.filter(r => {
-        const reportDate = new Date(r.generatedDate)
-        const startDateObj = new Date(start)
-        const endDateObj = new Date(end)
-        return reportDate >= startDateObj && reportDate <= endDateObj
-      })
-      setFilteredReports({
-        message: `${start}부터 ${end}까지 리포트로 필터링됨`,
-        data: filtered
-      })
-    } else {
-      setFilteredReports(null)
-    }
-  }
-
-  React.useEffect(() => {
-    if (periodFilter === 'custom' && startDate && endDate) {
-      filterReports(periodFilter, startDate, endDate)
-    }
-  }, [startDate, endDate, periodFilter])
+  // 실제 데이터에서 리포트 생성
+  const reports = generateReportsFromData()
+  
+  // 필터링된 리포트 또는 전체 리포트
+  const displayReports = filteredReports?.data || reports.filter(report => {
+    const matchesPeriod = filterPeriod === 'all' || report.type === filterPeriod
+    const matchesType = filterType === 'all' || report.status === filterType
+    const matchesSearch = searchTerm === '' || 
+      report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      report.channels.some(channel => channel.toLowerCase().includes(searchTerm.toLowerCase()))
+    return matchesPeriod && matchesType && matchesSearch
+  })
 
   const handleViewReport = (reportId: string) => {
     console.log('보고서 보기:', reportId)
-    
-    // 보고서 상세 보기 모달 또는 새 페이지로 이동
     const report = reports.find(r => r.id === reportId)
     if (report) {
       alert(`${report.title} 보고서를 조회합니다.\n생성일: ${report.generatedDate}\n달성률: ${report.achievementRate}%`)
@@ -95,7 +155,6 @@ const Reports = () => {
 
   const handleDownloadReport = (reportId: string, title: string) => {
     console.log('보고서 다운로드:', reportId)
-    
     const report = reports.find(r => r.id === reportId)
     if (report) {
       const reportContent = `
@@ -120,105 +179,6 @@ const Reports = () => {
       alert('보고서가 다운로드되었습니다!')
     }
   }
-
-  const handleCreateReport = () => {
-    const reportData = {
-      period: periodFilter,
-      startDate,
-      endDate,
-      createdAt: new Date().toISOString()
-    }
-    
-    console.log('새 리포트 생성:', reportData)
-    
-    // 새 리포트 생성 로직
-    const newReport = {
-      id: `${Date.now()}`,
-      title: `${periodFilter === 'monthly' ? '월간' : periodFilter === 'quarterly' ? '분기별' : '사용자 정의'} 성과 리포트`,
-      type: periodFilter,
-      period: periodFilter === 'custom' ? `${startDate} ~ ${endDate}` : new Date().getFullYear() + '년',
-      generatedDate: new Date().toISOString().split('T')[0],
-      channels: ['라이브커머스', '베이비페어'],
-      totalEvents: 8,
-      totalContracts: 156,
-      achievementRate: 78.2,
-      status: 'completed'
-    }
-    
-    alert(`새 리포트가 생성되었습니다!\n제목: ${newReport.title}\n기간: ${newReport.period}`)
-  }
-
-  // 샘플 데이터 - 추후 Supabase 연동 시 실제 데이터로 교체
-  const reports = [
-    {
-      id: '1',
-      title: '2024년 1분기 종합 성과 리포트',
-      type: 'quarterly',
-      period: '2024 Q1',
-      generatedDate: '2024-03-31',
-      channels: ['라이브커머스', '베이비페어', '입주박람회'],
-      totalEvents: 12,
-      totalContracts: 234,
-      achievementRate: 78.5,
-      status: 'completed'
-    },
-    {
-      id: '2',
-      title: '라이브커머스 채널 월간 분석',
-      type: 'monthly',
-      period: '2024년 1월',
-      generatedDate: '2024-01-31',
-      channels: ['라이브커머스'],
-      totalEvents: 4,
-      totalContracts: 89,
-      achievementRate: 82.3,
-      status: 'completed'
-    },
-    {
-      id: '3',
-      title: '베이비페어 이벤트 성과 분석',
-      type: 'event',
-      period: '2024-01-08 ~ 2024-01-14',
-      generatedDate: '2024-01-15',
-      channels: ['베이비페어'],
-      totalEvents: 1,
-      totalContracts: 95,
-      achievementRate: 118.8,
-      status: 'completed'
-    },
-    {
-      id: '4',
-      title: '인플루언서공구 채널 분석',
-      type: 'channel',
-      period: '2023년 전체',
-      generatedDate: '2024-01-10',
-      channels: ['인플루언서공구'],
-      totalEvents: 8,
-      totalContracts: 67,
-      achievementRate: 89.3,
-      status: 'completed'
-    },
-    {
-      id: '5',
-      title: '2024년 2분기 진행 중 리포트',
-      type: 'quarterly',
-      period: '2024 Q2',
-      generatedDate: '2024-06-15',
-      channels: ['라이브커머스', '베이비페어', '입주박람회', '인플루언서공구'],
-      totalEvents: 8,
-      totalContracts: 156,
-      achievementRate: 65.2,
-      status: 'draft'
-    }
-  ]
-
-  
-  // 필터링된 리포트 또는 전체 리포트
-  const displayReports = filteredReports?.data || reports.filter(report => {
-    const matchesPeriod = filterPeriod === 'all' || report.type === filterPeriod
-    const matchesType = filterType === 'all' || report.status === filterType
-    return matchesPeriod && matchesType
-  })
 
   const getTypeBadge = (type: string) => {
     const colors = {
@@ -251,8 +211,8 @@ const Reports = () => {
   const stats = {
     totalReports: reports.length,
     completedReports: reports.filter(r => r.status === 'completed').length,
-    avgAchievement: Math.round(reports.reduce((sum, r) => sum + r.achievementRate, 0) / reports.length),
-    thisQuarter: reports.filter(r => r.period.includes('2024 Q')).length
+    avgAchievement: reports.length > 0 ? Math.round(reports.reduce((sum, r) => sum + r.achievementRate, 0) / reports.length) : 0,
+    thisQuarter: reports.filter(r => r.period.includes('2024년 2분기') || r.period.includes('2024년 3분기')).length
   }
 
   return (
@@ -260,52 +220,59 @@ const Reports = () => {
       {/* Page Header */}
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">보고서</h1>
+          <h1 className="text-3xl font-bold text-foreground">리포트 관리</h1>
           <p className="text-muted-foreground mt-2">
-            성과 리포트를 생성하고 다운로드하세요
+            이벤트 성과 리포트를 생성하고 관리하세요
           </p>
-      </div>
-
-      {/* 필터링 결과 표시 */}
-      {filteredReports && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <p className="text-yellow-800 font-medium">{filteredReports.message}</p>
-          <p className="text-yellow-600 text-sm">필터링된 리포트: {filteredReports.data.length}개</p>
         </div>
-      )}
-        <div className="flex items-center space-x-4">
-          <Select value={periodFilter} onValueChange={handlePeriodChange}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="조회기간" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="monthly">월간</SelectItem>
-              <SelectItem value="quarterly">분기별</SelectItem>
-              <SelectItem value="custom">기간설정</SelectItem>
-            </SelectContent>
-          </Select>
-          {periodFilter === 'custom' && (
-            <div className="flex items-center space-x-2">
-              <Input 
-                type="date" 
-                className="w-40" 
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-              />
-              <span>~</span>
-              <Input 
-                type="date" 
-                className="w-40" 
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-              />
-            </div>
-          )}
-          <Button onClick={handleCreateReport}>
-            <FileText className="w-4 h-4 mr-2" />
+        {loading ? (
+          <div className="flex items-center">
+            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+            <span className="text-sm text-muted-foreground">데이터 로딩 중...</span>
+          </div>
+        ) : (
+          <Button onClick={() => alert('새 리포트 생성 기능은 준비 중입니다.')}>
+            <Plus className="w-4 h-4 mr-2" />
             새 리포트 생성
           </Button>
+        )}
+      </div>
+
+      {/* 검색 및 필터 */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+          <Input
+            placeholder="리포트 제목이나 채널명으로 검색..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
         </div>
+        
+        <Select value={filterPeriod} onValueChange={setFilterPeriod}>
+          <SelectTrigger className="w-full sm:w-48">
+            <SelectValue placeholder="리포트 유형" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">모든 유형</SelectItem>
+            <SelectItem value="quarterly">분기별</SelectItem>
+            <SelectItem value="monthly">월간</SelectItem>
+            <SelectItem value="event">이벤트별</SelectItem>
+            <SelectItem value="channel">채널별</SelectItem>
+          </SelectContent>
+        </Select>
+        
+        <Select value={filterType} onValueChange={setFilterType}>
+          <SelectTrigger className="w-full sm:w-32">
+            <SelectValue placeholder="상태" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">모든 상태</SelectItem>
+            <SelectItem value="completed">완료</SelectItem>
+            <SelectItem value="draft">임시저장</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Statistics Cards */}
@@ -359,99 +326,79 @@ const Reports = () => {
         </Card>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <Select value={filterPeriod} onValueChange={setFilterPeriod}>
-          <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="리포트 유형" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">모든 유형</SelectItem>
-            <SelectItem value="quarterly">분기별</SelectItem>
-            <SelectItem value="monthly">월간</SelectItem>
-            <SelectItem value="event">이벤트별</SelectItem>
-            <SelectItem value="channel">채널별</SelectItem>
-          </SelectContent>
-        </Select>
-        
-        <Select value={filterType} onValueChange={setFilterType}>
-          <SelectTrigger className="w-full sm:w-32">
-            <SelectValue placeholder="상태" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">모든 상태</SelectItem>
-            <SelectItem value="completed">완료</SelectItem>
-            <SelectItem value="draft">임시저장</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
       {/* Reports List */}
-      <div className="space-y-4">
-        {displayReports.map((report) => (
-          <Card key={report.id} className="hover:shadow-medium transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="space-y-3 flex-1">
-                  <div className="flex items-center space-x-3">
-                    {getTypeBadge(report.type)}
-                    {getStatusBadge(report.status)}
-                    <span className="text-sm text-muted-foreground">
-                      생성일: {report.generatedDate}
-                    </span>
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin mr-2" />
+          <span>리포트를 생성하는 중...</span>
+        </div>
+      ) : displayReports.length > 0 ? (
+        <div className="space-y-4">
+          {displayReports.map((report) => (
+            <Card key={report.id} className="hover:shadow-medium transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-3 flex-1">
+                    <div className="flex items-center space-x-3">
+                      {getTypeBadge(report.type)}
+                      {getStatusBadge(report.status)}
+                      <span className="text-sm text-muted-foreground">
+                        생성일: {report.generatedDate}
+                      </span>
+                    </div>
+                    
+                    <h3 className="text-lg font-semibold">{report.title}</h3>
+                    
+                    <div className="flex items-center space-x-6 text-sm text-muted-foreground">
+                      <span>기간: {report.period}</span>
+                      <span>이벤트: {report.totalEvents}개</span>
+                      <span>계약: {report.totalContracts}건</span>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-1">
+                      {report.channels.map((channel, index) => (
+                        <Badge key={index} variant="secondary" className="text-xs">
+                          {channel}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
                   
-                  <h3 className="text-lg font-semibold">{report.title}</h3>
-                  
-                  <div className="flex items-center space-x-6 text-sm text-muted-foreground">
-                    <span>기간: {report.period}</span>
-                    <span>이벤트: {report.totalEvents}개</span>
-                    <span>계약: {report.totalContracts}건</span>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-1">
-                    {report.channels.map((channel, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs">
-                        {channel}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-                
-                <div className="text-right space-y-2">
-                  <div className={`text-2xl font-bold ${getAchievementColor(report.achievementRate)}`}>
-                    {report.achievementRate}%
-                  </div>
-                  <div className="text-xs text-muted-foreground">달성률</div>
-                  
-                  <div className="flex space-x-2 mt-4">
-                    <Button variant="outline" size="sm" onClick={() => handleViewReport(report.id)}>
-                      <Eye className="w-4 h-4 mr-1" />
-                      보기
-                    </Button>
-                    {report.status === 'completed' && (
-                      <Button variant="outline" size="sm" onClick={() => handleDownloadReport(report.id, report.title)}>
-                        <Download className="w-4 h-4 mr-1" />
-                        다운로드
+                  <div className="text-right space-y-2">
+                    <div className={`text-2xl font-bold ${getAchievementColor(report.achievementRate)}`}>
+                      {report.achievementRate}%
+                    </div>
+                    <div className="text-xs text-muted-foreground">달성률</div>
+                    
+                    <div className="flex space-x-2 mt-4">
+                      <Button variant="outline" size="sm" onClick={() => handleViewReport(report.id)}>
+                        <Eye className="w-4 h-4 mr-1" />
+                        보기
                       </Button>
-                    )}
+                      {report.status === 'completed' && (
+                        <Button variant="outline" size="sm" onClick={() => handleDownloadReport(report.id, report.title)}>
+                          <Download className="w-4 h-4 mr-1" />
+                          다운로드
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {displayReports.length === 0 && (
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
         <div className="text-center py-12">
           <div className="text-muted-foreground">
-            {filteredReports || filterPeriod !== 'all' || filterType !== 'all' 
-              ? '필터 조건에 맞는 리포트가 없습니다.' 
+            {searchTerm || filterPeriod !== 'all' || filterType !== 'all' 
+              ? '검색 조건에 맞는 리포트가 없습니다.' 
               : '생성된 리포트가 없습니다.'
             }
           </div>
-          <Button className="mt-4">첫 번째 리포트 생성하기</Button>
+          <Button className="mt-4" onClick={() => alert('새 리포트 생성 기능은 준비 중입니다.')}>
+            첫 번째 리포트 생성하기
+          </Button>
         </div>
       )}
     </div>
