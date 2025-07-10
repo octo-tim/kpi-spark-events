@@ -11,12 +11,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Calendar, MapPin, Users, Target, ArrowLeft, Gift, FileText } from 'lucide-react'
+import { Calendar, MapPin, Users, Target, ArrowLeft, Gift, FileText, Printer } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { EventType } from '@/components/EventCard'
+import { useReactToPrint } from 'react-to-print'
+import { useRef } from 'react'
 
 const EventCreate = () => {
   const navigate = useNavigate()
+  const printRef = useRef<HTMLDivElement>(null)
   const [formData, setFormData] = useState({
     title: '',
     type: '' as EventType | '',
@@ -33,9 +36,11 @@ const EventCreate = () => {
     contactPhone: '',
     // 프로모션 항목
     salePrice: '',
+    additionalDiscount: '',
+    additionalDiscountCondition: '',
     constructionCost: '',
+    constructionDiscountCondition: '',
     estimateGift: '',
-    constructionDiscount: '',
     constructionGift: '',
     fieldEvent: '',
     // 전회차 반영사항
@@ -54,10 +59,14 @@ const EventCreate = () => {
     navigate('/events')
   }
 
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+  })
+
   const eventTypes: EventType[] = ['라이브커머스', '베이비페어', '입주박람회', '인플루언서공구']
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" ref={printRef}>
       {/* Page Header */}
       <div className="flex items-center space-x-4">
         <Button variant="outline" size="sm" asChild>
@@ -273,23 +282,48 @@ const EventCreate = () => {
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Gift className="w-5 h-5" />
-              <span>프로모션 항목</span>
+              <span>프로모션</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* 판매단가 (전체 너비) */}
+            <div className="space-y-2">
+              <Label htmlFor="salePrice">판매단가</Label>
+              <Input
+                id="salePrice"
+                type="number"
+                value={formData.salePrice}
+                onChange={(e) => handleInputChange('salePrice', e.target.value)}
+                placeholder="판매단가를 입력하세요"
+                min="0"
+              />
+            </div>
+
+            {/* 추가할인, 추가할인 조건 */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="salePrice">판매단가</Label>
+                <Label htmlFor="additionalDiscount">추가할인</Label>
                 <Input
-                  id="salePrice"
-                  type="number"
-                  value={formData.salePrice}
-                  onChange={(e) => handleInputChange('salePrice', e.target.value)}
-                  placeholder="판매단가를 입력하세요"
-                  min="0"
+                  id="additionalDiscount"
+                  value={formData.additionalDiscount}
+                  onChange={(e) => handleInputChange('additionalDiscount', e.target.value)}
+                  placeholder="추가할인을 입력하세요"
                 />
               </div>
               
+              <div className="space-y-2">
+                <Label htmlFor="additionalDiscountCondition">추가할인 조건</Label>
+                <Input
+                  id="additionalDiscountCondition"
+                  value={formData.additionalDiscountCondition}
+                  onChange={(e) => handleInputChange('additionalDiscountCondition', e.target.value)}
+                  placeholder="추가할인 조건을 입력하세요"
+                />
+              </div>
+            </div>
+
+            {/* 시공비, 시공비할인조건 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="constructionCost">시공비</Label>
                 <Input
@@ -301,8 +335,19 @@ const EventCreate = () => {
                   min="0"
                 />
               </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="constructionDiscountCondition">시공비할인조건</Label>
+                <Input
+                  id="constructionDiscountCondition"
+                  value={formData.constructionDiscountCondition}
+                  onChange={(e) => handleInputChange('constructionDiscountCondition', e.target.value)}
+                  placeholder="시공비할인조건을 입력하세요"
+                />
+              </div>
             </div>
 
+            {/* 견적사은품, 시공사은품 */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="estimateGift">견적사은품</Label>
@@ -315,26 +360,17 @@ const EventCreate = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="constructionDiscount">시공할인</Label>
+                <Label htmlFor="constructionGift">시공사은품</Label>
                 <Input
-                  id="constructionDiscount"
-                  value={formData.constructionDiscount}
-                  onChange={(e) => handleInputChange('constructionDiscount', e.target.value)}
-                  placeholder="시공할인을 입력하세요"
+                  id="constructionGift"
+                  value={formData.constructionGift}
+                  onChange={(e) => handleInputChange('constructionGift', e.target.value)}
+                  placeholder="시공사은품을 입력하세요"
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="constructionGift">시공사은품</Label>
-              <Input
-                id="constructionGift"
-                value={formData.constructionGift}
-                onChange={(e) => handleInputChange('constructionGift', e.target.value)}
-                placeholder="시공사은품을 입력하세요"
-              />
-            </div>
-
+            {/* 현장이벤트 */}
             <div className="space-y-2">
               <Label htmlFor="fieldEvent">현장이벤트</Label>
               <Textarea
@@ -370,14 +406,21 @@ const EventCreate = () => {
           </CardContent>
         </Card>
 
-        {/* 제출 버튼 */}
-        <div className="flex justify-end space-x-4">
-          <Button type="button" variant="outline" asChild>
-            <Link to="/events">취소</Link>
+        {/* 제출 및 출력 버튼 */}
+        <div className="flex justify-between">
+          <Button type="button" variant="outline" onClick={handlePrint} className="flex items-center space-x-2">
+            <Printer className="w-4 h-4" />
+            <span>PDF 출력</span>
           </Button>
-          <Button type="submit">
-            이벤트 등록
-          </Button>
+          
+          <div className="flex space-x-4">
+            <Button type="button" variant="outline" asChild>
+              <Link to="/events">취소</Link>
+            </Button>
+            <Button type="submit">
+              이벤트 등록
+            </Button>
+          </div>
         </div>
       </form>
     </div>
