@@ -736,7 +736,7 @@ ${filteredStats.message}
       {/* 채널별 월간 현황 */}
       <Card>
         <CardHeader>
-          <CardTitle>채널별 금월 현황 및 실적 비교</CardTitle>
+          <CardTitle>채널별 견적 현황</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
@@ -859,7 +859,7 @@ ${filteredStats.message}
         {/* 성과(계약장수) 상위 이벤트 */}
         <Card>
           <CardHeader>
-            <CardTitle>성과(계약장수) 상위 이벤트</CardTitle>
+            <CardTitle>이벤트별 계약장수</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
