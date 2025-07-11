@@ -152,7 +152,18 @@ ${filteredStats.message}
       const prevMonth = month === 1 ? 12 : month - 1
       const prevYear = month === 1 ? year - 1 : year
       
-      return await fetchEventsByMonth(prevYear.toString(), prevMonth.toString().padStart(2, '0'))
+      console.log('전월 데이터 조회:', { 
+        currentYear, 
+        currentMonth, 
+        prevYear, 
+        prevMonth: prevMonth.toString().padStart(2, '0') 
+      })
+      
+      const prevMonthData = await fetchEventsByMonth(prevYear.toString(), prevMonth.toString().padStart(2, '0'))
+      console.log('전월 데이터 결과:', prevMonthData.length, '개 이벤트')
+      console.log('전월 이벤트 상세:', prevMonthData.map(e => ({ title: e.title, type: e.type, actual_contracts: e.actual_contracts })))
+      
+      return prevMonthData
     } catch (error) {
       console.error('전월 데이터 조회 오류:', error)
       return []
