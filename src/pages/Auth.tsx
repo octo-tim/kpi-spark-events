@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Eye, EyeOff, LogIn, UserPlus, Home } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import bombomLogo from '@/assets/bombom-logo.png'
+const bombomLogo = '/lovable-uploads/4e92ef68-eac9-494c-a0e4-df21fa5c474d.png'
 
 const Auth = () => {
   const [showPassword, setShowPassword] = useState(false)
@@ -143,7 +143,7 @@ const Auth = () => {
               <p className="text-sm text-muted-foreground">외부채널 영업관리</p>
             </div>
           </div>
-          <p className="text-muted-foreground">안전하고 따뜻한 관리 시스템</p>
+          
         </div>
 
         <Card className="backdrop-blur-sm bg-white/95 shadow-warm border-0">
