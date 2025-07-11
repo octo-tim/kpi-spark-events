@@ -84,8 +84,15 @@ const Auth = () => {
       } else {
         toast({
           title: "회원가입 완료",
-          description: "이메일을 확인하여 계정을 활성화해주세요.",
+          description: "회원가입이 완료되었습니다. 바로 로그인해주세요.",
         })
+        // 회원가입 완료 후 로그인 탭으로 전환
+        const loginTab = document.querySelector('[value="login"]') as HTMLElement
+        loginTab?.click()
+        setSignupEmail('')
+        setSignupPassword('')
+        setSignupName('')
+        setLoginEmail(signupEmail)
       }
     } catch (err) {
       setError('회원가입 중 오류가 발생했습니다.')
