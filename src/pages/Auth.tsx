@@ -7,8 +7,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Eye, EyeOff, LogIn, UserPlus, BarChart3 } from 'lucide-react'
+import { Eye, EyeOff, LogIn, UserPlus, Home } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import bombomLogo from '@/assets/bombom-logo.png'
 
 const Auth = () => {
   const [showPassword, setShowPassword] = useState(false)
@@ -103,46 +104,64 @@ const Auth = () => {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-warm flex items-center justify-center">
         <div className="text-center">
-          <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center mx-auto mb-4">
-            <BarChart3 className="w-5 h-5 text-primary-foreground" />
+          <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-warm bg-white p-3 mx-auto mb-4 animate-pulse">
+            <img 
+              src={bombomLogo} 
+              alt="봄봄매트 로고"
+              className="w-full h-full object-contain"
+            />
           </div>
-          <p className="text-muted-foreground">로딩 중...</p>
+          <p className="text-muted-foreground">인증 확인 중...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-6">
+    <div className="min-h-screen bg-gradient-warm flex items-center justify-center p-4 relative overflow-hidden">
+      {/* 배경 장식 요소 */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl"></div>
+      </div>
+      
+      <div className="w-full max-w-md space-y-8 relative z-10">
         {/* 로고 및 타이틀 */}
         <div className="text-center">
-          <div className="flex items-center justify-center space-x-2 mb-4">
-            <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
-              <BarChart3 className="w-6 h-6 text-primary-foreground" />
+          <div className="flex items-center justify-center space-x-3 mb-6">
+            <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-warm bg-white p-2">
+              <img 
+                src={bombomLogo} 
+                alt="봄봄매트 로고"
+                className="w-full h-full object-contain"
+              />
             </div>
-            <h1 className="text-2xl font-bold text-foreground">외부채널 영업관리</h1>
+            <div className="text-left">
+              <h1 className="text-2xl font-bold text-primary">봄봄매트</h1>
+              <p className="text-sm text-muted-foreground">외부채널 영업관리</p>
+            </div>
           </div>
-          <p className="text-muted-foreground">계정에 로그인하여 시작하세요</p>
+          <p className="text-muted-foreground">안전하고 따뜻한 관리 시스템</p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-center">로그인 / 회원가입</CardTitle>
+        <Card className="backdrop-blur-sm bg-white/95 shadow-warm border-0">
+          <CardHeader className="space-y-4">
+            <CardTitle className="text-center text-primary">계정 로그인</CardTitle>
+            <div className="w-12 h-1 bg-gradient-primary rounded-full mx-auto"></div>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">로그인</TabsTrigger>
-                <TabsTrigger value="signup">회원가입</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 bg-muted/50">
+                <TabsTrigger value="login" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">로그인</TabsTrigger>
+                <TabsTrigger value="signup" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">회원가입</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="login" className="space-y-4">
+              <TabsContent value="login" className="space-y-6 mt-6">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="login-email">이메일</Label>
+                    <Label htmlFor="login-email" className="text-foreground font-medium">이메일</Label>
                     <Input
                       id="login-email"
                       type="email"
@@ -150,11 +169,12 @@ const Auth = () => {
                       value={loginEmail}
                       onChange={(e) => setLoginEmail(e.target.value)}
                       required
+                      className="h-12 border-2 border-border/50 focus:border-primary transition-colors"
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="login-password">비밀번호</Label>
+                    <Label htmlFor="login-password" className="text-foreground font-medium">비밀번호</Label>
                     <div className="relative">
                       <Input
                         id="login-password"
@@ -163,12 +183,13 @@ const Auth = () => {
                         value={loginPassword}
                         onChange={(e) => setLoginPassword(e.target.value)}
                         required
+                        className="h-12 border-2 border-border/50 focus:border-primary transition-colors pr-12"
                       />
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent text-muted-foreground hover:text-foreground"
                         onClick={() => setShowPassword(!showPassword)}
                       >
                         {showPassword ? (
@@ -181,18 +202,21 @@ const Auth = () => {
                   </div>
 
                   {error && (
-                    <Alert variant="destructive">
+                    <Alert variant="destructive" className="border-l-4 border-l-destructive">
                       <AlertDescription>{error}</AlertDescription>
                     </Alert>
                   )}
 
                   <Button 
                     type="submit" 
-                    className="w-full" 
+                    className="w-full h-12 bg-gradient-primary hover:opacity-90 transition-opacity text-lg font-medium shadow-warm" 
                     disabled={loading}
                   >
                     {loading ? (
-                      "로그인 중..."
+                      <div className="flex items-center space-x-2">
+                        <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"></div>
+                        <span>로그인 중...</span>
+                      </div>
                     ) : (
                       <>
                         <LogIn className="w-4 h-4 mr-2" />
@@ -203,10 +227,10 @@ const Auth = () => {
                 </form>
               </TabsContent>
               
-              <TabsContent value="signup" className="space-y-4">
+              <TabsContent value="signup" className="space-y-6 mt-6">
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-name">이름</Label>
+                    <Label htmlFor="signup-name" className="text-foreground font-medium">이름</Label>
                     <Input
                       id="signup-name"
                       type="text"
@@ -214,11 +238,12 @@ const Auth = () => {
                       value={signupName}
                       onChange={(e) => setSignupName(e.target.value)}
                       required
+                      className="h-12 border-2 border-border/50 focus:border-primary transition-colors"
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email">이메일</Label>
+                    <Label htmlFor="signup-email" className="text-foreground font-medium">이메일</Label>
                     <Input
                       id="signup-email"
                       type="email"
@@ -226,11 +251,12 @@ const Auth = () => {
                       value={signupEmail}
                       onChange={(e) => setSignupEmail(e.target.value)}
                       required
+                      className="h-12 border-2 border-border/50 focus:border-primary transition-colors"
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">비밀번호</Label>
+                    <Label htmlFor="signup-password" className="text-foreground font-medium">비밀번호</Label>
                     <div className="relative">
                       <Input
                         id="signup-password"
@@ -240,12 +266,13 @@ const Auth = () => {
                         onChange={(e) => setSignupPassword(e.target.value)}
                         required
                         minLength={6}
+                        className="h-12 border-2 border-border/50 focus:border-primary transition-colors pr-12"
                       />
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent text-muted-foreground hover:text-foreground"
                         onClick={() => setShowPassword(!showPassword)}
                       >
                         {showPassword ? (
@@ -258,18 +285,21 @@ const Auth = () => {
                   </div>
 
                   {error && (
-                    <Alert variant="destructive">
+                    <Alert variant="destructive" className="border-l-4 border-l-destructive">
                       <AlertDescription>{error}</AlertDescription>
                     </Alert>
                   )}
 
                   <Button 
                     type="submit" 
-                    className="w-full" 
+                    className="w-full h-12 bg-gradient-primary hover:opacity-90 transition-opacity text-lg font-medium shadow-warm" 
                     disabled={loading}
                   >
                     {loading ? (
-                      "가입 중..."
+                      <div className="flex items-center space-x-2">
+                        <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"></div>
+                        <span>가입 중...</span>
+                      </div>
                     ) : (
                       <>
                         <UserPlus className="w-4 h-4 mr-2" />
@@ -283,8 +313,16 @@ const Auth = () => {
           </CardContent>
         </Card>
 
-        <div className="text-center text-sm text-muted-foreground">
-          테스트 계정: info@octoinc.co.kr / 4900
+        <div className="text-center space-y-3">
+          <div className="text-sm text-muted-foreground bg-white/60 backdrop-blur-sm rounded-lg p-3 border border-border/30">
+            <p className="font-medium text-foreground mb-1">테스트 계정</p>
+            <p>info@octoinc.co.kr / 4900</p>
+          </div>
+          
+          <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
+            <Home className="w-4 h-4" />
+            <span>봄봄매트와 함께하는 안전한 공간</span>
+          </div>
         </div>
       </div>
     </div>
