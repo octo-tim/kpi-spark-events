@@ -75,6 +75,27 @@ const Analytics = () => {
       // 평균 달성률 계산 (실제 계약건수 / 목표 계약건수 * 100)
       const averageAchievementRate = totalTargetContracts > 0 ? Math.round((totalContracts / totalTargetContracts) * 100) : 0
       
+      // 전월 데이터 조회 (월간 조회시에만)
+      let prevMonthStats = null
+      if (periodFilter === 'monthly') {
+        const prevMonthData = await getPreviousMonthData(selectedYear, selectedMonth)
+        if (prevMonthData.length > 0) {
+          const prevTotalContracts = prevMonthData.reduce((sum, event) => sum + event.actual_contracts, 0)
+          const prevTotalSqm = prevMonthData.reduce((sum, event) => sum + event.actual_sqm, 0)
+          const prevTotalCost = prevMonthData.reduce((sum, event) => sum + (event.total_cost || 0), 0)
+          const prevCostPerSqm = prevTotalSqm > 0 ? Math.round(prevTotalCost / prevTotalSqm) : 0
+          const prevTotalTargetContracts = prevMonthData.reduce((sum, event) => sum + event.target_contracts, 0)
+          const prevAverageAchievementRate = prevTotalTargetContracts > 0 ? Math.round((prevTotalContracts / prevTotalTargetContracts) * 100) : 0
+          
+          prevMonthStats = {
+            totalEvents: prevMonthData.length,
+            totalContracts: prevTotalContracts,
+            costPerSqm: prevCostPerSqm,
+            averageAchievementRate: prevAverageAchievementRate
+          }
+        }
+      }
+      
       let message = ''
       if (periodFilter === 'monthly') {
         message = `${selectedYear}년 ${parseInt(selectedMonth)}월 분석 데이터 (${filteredEventData.length}개 이벤트)`
@@ -94,7 +115,8 @@ const Analytics = () => {
         totalCost,
         costPerSqm,
         averageAchievementRate,
-        filteredEventData
+        filteredEventData,
+        prevMonthStats
       })
 
       // 채널 통계 계산
@@ -564,29 +586,41 @@ ${filteredStats.message}
           title="총 이벤트"
           value={filteredStats?.totalEvents || 0}
           unit="개"
-          trend="up"
-          trendValue={12}
+          trend={filteredStats?.prevMonthStats && filteredStats.totalEvents > filteredStats.prevMonthStats.totalEvents ? "up" : "down"}
+          trendValue={filteredStats?.prevMonthStats ? 
+            Math.round(((filteredStats.totalEvents - filteredStats.prevMonthStats.totalEvents) / Math.max(filteredStats.prevMonthStats.totalEvents, 1)) * 100) : 
+            0
+          }
         />
         <KPICard
           title="총 계약건수"
           value={filteredStats?.totalContracts || 0}
           unit="건"
-          trend="up"
-          trendValue={8}
+          trend={filteredStats?.prevMonthStats && filteredStats.totalContracts > filteredStats.prevMonthStats.totalContracts ? "up" : "down"}
+          trendValue={filteredStats?.prevMonthStats ? 
+            Math.round(((filteredStats.totalContracts - filteredStats.prevMonthStats.totalContracts) / Math.max(filteredStats.prevMonthStats.totalContracts, 1)) * 100) : 
+            0
+          }
         />
         <KPICard
           title="평균 달성률"
           value={filteredStats?.averageAchievementRate || 0}
           unit="%"
-          trend="down"
-          trendValue={-3}
+          trend={filteredStats?.prevMonthStats && filteredStats.averageAchievementRate > filteredStats.prevMonthStats.averageAchievementRate ? "up" : "down"}
+          trendValue={filteredStats?.prevMonthStats ? 
+            Math.round(filteredStats.averageAchievementRate - filteredStats.prevMonthStats.averageAchievementRate) : 
+            0
+          }
         />
         <KPICard
           title="장당비용"
           value={filteredStats?.costPerSqm || 0}
           unit="원/장"
-          trend="down"
-          trendValue={-8}
+          trend={filteredStats?.prevMonthStats && filteredStats.costPerSqm < filteredStats.prevMonthStats.costPerSqm ? "up" : "down"}
+          trendValue={filteredStats?.prevMonthStats ? 
+            Math.round(((filteredStats.costPerSqm - filteredStats.prevMonthStats.costPerSqm) / Math.max(filteredStats.prevMonthStats.costPerSqm, 1)) * 100) : 
+            0
+          }
         />
       </div>
 
