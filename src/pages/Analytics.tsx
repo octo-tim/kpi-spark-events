@@ -237,14 +237,19 @@ ${filteredStats.message}
     
     console.log('다음달 채널 맵:', Object.keys(nextChannelMap))
     
-    // 현재월과 다음달의 모든 채널을 합쳐서 처리
-    const allChannels = new Set([...Object.keys(channelMap), ...Object.keys(nextChannelMap)])
+    // 현재월, 전월, 다음달의 모든 채널을 합쳐서 처리
+    const allChannels = new Set([
+      ...Object.keys(channelMap), 
+      ...Object.keys(prevChannelMap), 
+      ...Object.keys(nextChannelMap)
+    ])
     console.log('모든 채널:', Array.from(allChannels))
     
     const channelStatsResult = []
     
-    // 현재월에 있는 채널들 처리
-    for (const [channel, channelEvents] of Object.entries(channelMap)) {
+    // 모든 채널들 처리 (현재월, 전월, 다음달 데이터가 있는 모든 채널)
+    for (const channel of Array.from(allChannels)) {
+      const channelEvents = channelMap[channel] || []
       const currentContracts = channelEvents.reduce((sum, e) => sum + e.actual_contracts, 0)
       const currentTargetContracts = channelEvents.reduce((sum, e) => sum + e.target_contracts, 0)
       const currentEstimates = channelEvents.reduce((sum, e) => sum + e.actual_estimates, 0)
@@ -298,33 +303,12 @@ ${filteredStats.message}
       })
     }
     
-    // 다음달에만 있는 새로운 채널들 추가 (익월 목표용)
-    for (const [channel, nextChannelEvents] of Object.entries(nextChannelMap)) {
-      if (!channelMap[channel]) { // 현재월에 없는 채널
-        console.log(`[새 채널: ${channel}] 다음달에만 존재하는 채널`)
-        
-        const nextMonthTargetContracts = nextChannelEvents.reduce((sum, e) => sum + e.target_contracts, 0)
-        const nextMonthTargetEstimates = nextChannelEvents.reduce((sum, e) => sum + e.target_estimates, 0)
-        
-        channelStatsResult.push({
-          channel,
-          totalEvents: 0,
-          completedEvents: 0,
-          totalContracts: 0,
-          totalEstimates: 0,
-          totalSqm: 0,
-          targetContracts: 0,
-          targetEstimates: 0,
-          prevContracts: 0,
-          trendValue: 0,
-          trend: 'up',
-          goalAchievementRate: 0,
-          nextMonthTargetContracts,
-          nextMonthTargetEstimates,
-          avgContractRate: 0
-        })
-      }
-    }
+    console.log('channelStatsResult:', channelStatsResult.map(c => ({ 
+      channel: c.channel, 
+      currentContracts: c.totalContracts, 
+      prevContracts: c.prevContracts,
+      nextMonthTargets: c.nextMonthTargetContracts
+    })))
     
     return channelStatsResult
   }
