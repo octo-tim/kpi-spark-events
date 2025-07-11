@@ -316,7 +316,7 @@ const Auth = () => {
         <div className="text-center space-y-3">
           <div className="text-sm text-muted-foreground bg-white/60 backdrop-blur-sm rounded-lg p-3 border border-border/30">
             <p className="font-medium text-foreground mb-1">테스트 계정</p>
-            <p>info@octoinc.co.kr / 4900</p>
+            <p>info@octoinc.co.kr / 49004900</p>
           </div>
           
           <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
