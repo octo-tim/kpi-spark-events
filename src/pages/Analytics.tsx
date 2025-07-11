@@ -231,7 +231,14 @@ ${filteredStats.message}
     
     console.log('다음달 채널 맵:', Object.keys(nextChannelMap))
     
-    return Object.entries(channelMap).map(([channel, channelEvents]) => {
+    // 현재월과 다음달의 모든 채널을 합쳐서 처리
+    const allChannels = new Set([...Object.keys(channelMap), ...Object.keys(nextChannelMap)])
+    console.log('모든 채널:', Array.from(allChannels))
+    
+    const channelStatsResult = []
+    
+    // 현재월에 있는 채널들 처리
+    for (const [channel, channelEvents] of Object.entries(channelMap)) {
       const currentContracts = channelEvents.reduce((sum, e) => sum + e.actual_contracts, 0)
       const currentTargetContracts = channelEvents.reduce((sum, e) => sum + e.target_contracts, 0)
       const currentEstimates = channelEvents.reduce((sum, e) => sum + e.actual_estimates, 0)
@@ -248,7 +255,7 @@ ${filteredStats.message}
       // 목표 대비 달성률
       const goalAchievementRate = currentTargetContracts > 0 ? Math.round((currentContracts / currentTargetContracts) * 100) : 0
       
-      // 다음달 실제 목표 확인 (다음달에 이벤트가 있을 때만 목표 표시)
+      // 다음달 실제 목표 확인
       const nextChannelEvents = nextChannelMap[channel] || []
       console.log(`[${channel}] 다음달 이벤트:`, nextChannelEvents.length, '개')
       
@@ -264,7 +271,7 @@ ${filteredStats.message}
         nextMonthTargetEstimates 
       })
 
-      return {
+      channelStatsResult.push({
         channel,
         totalEvents: channelEvents.length,
         completedEvents: channelEvents.filter(e => e.status === '완료').length,
@@ -282,8 +289,38 @@ ${filteredStats.message}
         avgContractRate: channelEvents.length > 0 
           ? channelEvents.reduce((sum, e) => sum + (e.actual_contracts / Math.max(e.target_contracts, 1) * 100), 0) / channelEvents.length 
           : 0
+      })
+    }
+    
+    // 다음달에만 있는 새로운 채널들 추가 (익월 목표용)
+    for (const [channel, nextChannelEvents] of Object.entries(nextChannelMap)) {
+      if (!channelMap[channel]) { // 현재월에 없는 채널
+        console.log(`[새 채널: ${channel}] 다음달에만 존재하는 채널`)
+        
+        const nextMonthTargetContracts = nextChannelEvents.reduce((sum, e) => sum + e.target_contracts, 0)
+        const nextMonthTargetEstimates = nextChannelEvents.reduce((sum, e) => sum + e.target_estimates, 0)
+        
+        channelStatsResult.push({
+          channel,
+          totalEvents: 0,
+          completedEvents: 0,
+          totalContracts: 0,
+          totalEstimates: 0,
+          totalSqm: 0,
+          targetContracts: 0,
+          targetEstimates: 0,
+          prevContracts: 0,
+          trendValue: 0,
+          trend: 'up',
+          goalAchievementRate: 0,
+          nextMonthTargetContracts,
+          nextMonthTargetEstimates,
+          avgContractRate: 0
+        })
       }
-    })
+    }
+    
+    return channelStatsResult
   }
 
   
