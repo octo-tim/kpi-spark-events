@@ -108,9 +108,9 @@ const Analytics = () => {
   }
 
   useEffect(() => {
-    // 초기 로드시 월간 데이터 자동 로드
+    // 날짜나 기간 변경시 자동으로 데이터 로드
     handleSearch()
-  }, [])
+  }, [selectedYear, selectedMonth, selectedQuarter, startYear, startMonth, endYear, endMonth, periodFilter])
 
   const handleDownload = () => {
     console.log('리포트 다운로드 시작')
