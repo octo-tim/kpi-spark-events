@@ -281,14 +281,14 @@ const Dashboard = () => {
   return (
     <div className="space-y-8">
       {/* Page Header */}
-      <div className="flex justify-between items-start">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start space-y-4 sm:space-y-0">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">외부채널 영업관리</h1>
-          <p className="text-muted-foreground mt-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">외부채널 영업관리</h1>
+          <p className="text-muted-foreground mt-2 text-sm sm:text-base">
             제휴채널별 영업 성과와 주요 지표를 한눈에 확인하세요
           </p>
         </div>
-        <div className="flex items-center space-x-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
           <Select value={periodFilter} onValueChange={handlePeriodChange}>
             <SelectTrigger className="w-48">
               <SelectValue placeholder="조회기간" />
@@ -379,7 +379,7 @@ const Dashboard = () => {
       )}
 
       {/* KPI Cards - 강제 리렌더링을 위한 key 추가 */}
-      <div key={`kpi-cards-${filterKey}`} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div key={`kpi-cards-${filterKey}`} className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
         {filteredData && (
           <div className="col-span-full animate-fade-in">
             <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg p-4 mb-4 flex justify-between items-center">

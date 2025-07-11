@@ -91,14 +91,14 @@ const EventList = () => {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex justify-between items-start">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start space-y-4 sm:space-y-0">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">이벤트 목록</h1>
-          <p className="text-muted-foreground mt-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">이벤트 목록</h1>
+          <p className="text-muted-foreground mt-2 text-sm sm:text-base">
             모든 제휴채널 이벤트를 관리하고 성과를 추적하세요
           </p>
         </div>
-        <Button asChild>
+        <Button asChild className="sm:w-auto">
           <Link to="/events/create">
             <Plus className="w-4 h-4 mr-2" />
             새 이벤트 기획
@@ -115,7 +115,7 @@ const EventList = () => {
       />
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <div className="bg-gradient-card p-4 rounded-lg border border-border">
           <div className="text-sm text-muted-foreground">계획중</div>
           <div className="text-2xl font-bold text-foreground">{getStatusCount('계획중')}</div>
@@ -195,7 +195,7 @@ const EventList = () => {
           <span>이벤트 목록을 불러오는 중...</span>
         </div>
       ) : filteredEvents.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
           {filteredEvents.map((event) => (
             <EventCard key={event.id} event={event} />
           ))}

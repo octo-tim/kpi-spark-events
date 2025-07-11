@@ -49,11 +49,11 @@ const KPICard = ({
 
   return (
     <div className={cn(
-      'bg-gradient-card p-6 rounded-lg border border-border shadow-soft',
+      'bg-gradient-card p-4 sm:p-6 rounded-lg border border-border shadow-soft',
       className
     )}>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
+        <h3 className="text-xs sm:text-sm font-medium text-muted-foreground">{title}</h3>
         {trend && (
           <div className="flex items-center space-x-1">
             {getTrendIcon()}
@@ -68,10 +68,10 @@ const KPICard = ({
       
       <div className="space-y-2">
         <div className="flex items-baseline space-x-2">
-          <span className="text-2xl font-bold text-foreground">
+          <span className="text-xl sm:text-2xl font-bold text-foreground">
             {value.toLocaleString()}
           </span>
-          {unit && <span className="text-sm text-muted-foreground">{unit}</span>}
+          {unit && <span className="text-xs sm:text-sm text-muted-foreground">{unit}</span>}
         </div>
         
         {target && (
