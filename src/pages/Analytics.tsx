@@ -190,12 +190,7 @@ ${filteredStats.message}
       currentMonth 
     })
     
-    // 데이터가 없으면 빈 배열 반환
-    if (currentEvents.length === 0) {
-      console.log('이벤트가 없어서 빈 배열 반환')
-      return []
-    }
-    
+    // 현재월 데이터가 없어도 다음달 목표는 확인해야 함
     const channelMap: { [key: string]: Event[] } = {}
     
     currentEvents.forEach(event => {
