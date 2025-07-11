@@ -736,7 +736,7 @@ ${filteredStats.message}
       {/* 채널별 월간 현황 */}
       <Card>
         <CardHeader>
-          <CardTitle>채널별 견적 현황</CardTitle>
+          <CardTitle>채널별 계약현황</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
@@ -821,7 +821,7 @@ ${filteredStats.message}
         {/* 채널별 실적 현황 */}
         <Card>
           <CardHeader>
-            <CardTitle>채널별 실적 현황</CardTitle>
+            <CardTitle>채널별 견적 실적</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
