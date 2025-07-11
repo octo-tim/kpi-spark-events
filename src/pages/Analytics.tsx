@@ -218,6 +218,8 @@ ${filteredStats.message}
     
     // 다음달 데이터 가져오기
     const nextMonthEvents = await getNextMonthData(currentYear, currentMonth)
+    console.log('다음달 이벤트 상세:', nextMonthEvents.map(e => ({ title: e.title, type: e.type, target_contracts: e.target_contracts })))
+    
     const nextChannelMap: { [key: string]: Event[] } = {}
     
     nextMonthEvents.forEach(event => {
@@ -226,6 +228,8 @@ ${filteredStats.message}
       }
       nextChannelMap[event.type].push(event)
     })
+    
+    console.log('다음달 채널 맵:', Object.keys(nextChannelMap))
     
     return Object.entries(channelMap).map(([channel, channelEvents]) => {
       const currentContracts = channelEvents.reduce((sum, e) => sum + e.actual_contracts, 0)
