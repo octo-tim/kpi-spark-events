@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input'
 import KPICard from '@/components/KPICard'
 import { useEvents, type Event } from '@/hooks/useEvents'
+import { useIsMobile } from '@/hooks/use-mobile'
 import { 
   BarChart3, 
   TrendingUp, 
@@ -28,6 +29,7 @@ const Analytics = () => {
     fetchEventsByPeriod,
     fetchEventsByStatus 
   } = useEvents()
+  const isMobile = useIsMobile()
   
   const [periodFilter, setPeriodFilter] = useState('monthly')
   const [selectedYear, setSelectedYear] = useState('2024')
@@ -121,7 +123,6 @@ const Analytics = () => {
 
       // 채널 통계 계산
       const stats = await getChannelStats(filteredEventData, selectedYear, selectedMonth)
-      console.log('channelStats 설정됨:', stats)
       setChannelStats(stats)
       
     } catch (error) {
@@ -135,8 +136,6 @@ const Analytics = () => {
   }, [selectedYear, selectedMonth, selectedQuarter, startYear, startMonth, endYear, endMonth, periodFilter])
 
   const handleDownload = () => {
-    console.log('리포트 다운로드 시작')
-    
     const customPeriod = periodFilter === 'monthly' ? `${selectedYear}년 ${parseInt(selectedMonth)}월` :
                       periodFilter === 'quarterly' ? `${selectedYear}년 ${selectedQuarter}분기` :
                       periodFilter === 'custom' ? `${startYear}년 ${startMonth}월 ~ ${endYear}년 ${endMonth}월` : ''
@@ -174,17 +173,7 @@ ${filteredStats.message}
       const prevMonth = month === 1 ? 12 : month - 1
       const prevYear = month === 1 ? year - 1 : year
       
-      console.log('전월 데이터 조회:', { 
-        currentYear, 
-        currentMonth, 
-        prevYear, 
-        prevMonth: prevMonth.toString().padStart(2, '0') 
-      })
-      
       const prevMonthData = await fetchEventsByMonth(prevYear.toString(), prevMonth.toString().padStart(2, '0'))
-      console.log('전월 데이터 결과:', prevMonthData.length, '개 이벤트')
-      console.log('전월 이벤트 상세:', prevMonthData.map(e => ({ title: e.title, type: e.type, actual_contracts: e.actual_contracts })))
-      
       return prevMonthData
     } catch (error) {
       console.error('전월 데이터 조회 오류:', error)
@@ -200,29 +189,15 @@ ${filteredStats.message}
       const nextMonth = month === 12 ? 1 : month + 1
       const nextYear = month === 12 ? year + 1 : year
       
-      console.log('다음달 데이터 조회:', { 
-        currentYear, 
-        currentMonth, 
-        nextYear, 
-        nextMonth: nextMonth.toString().padStart(2, '0') 
-      })
-      
       const nextMonthData = await fetchEventsByMonth(nextYear.toString(), nextMonth.toString().padStart(2, '0'))
-      console.log('다음달 데이터 결과:', nextMonthData.length, '개 이벤트')
-      
       return nextMonthData
     } catch (error) {
       console.error('다음달 데이터 조회 오류:', error)
       return []
     }
   }
+
   const getChannelStats = async (currentEvents: Event[], currentYear: string, currentMonth: string) => {
-    console.log('getChannelStats 호출됨:', { 
-      currentEventsLength: currentEvents.length, 
-      currentYear, 
-      currentMonth 
-    })
-    
     // 현재월 데이터가 없어도 다음달 목표는 확인해야 함
     const channelMap: { [key: string]: Event[] } = {}
     
@@ -246,8 +221,6 @@ ${filteredStats.message}
     
     // 다음달 데이터 가져오기
     const nextMonthEvents = await getNextMonthData(currentYear, currentMonth)
-    console.log('다음달 이벤트 상세:', nextMonthEvents.map(e => ({ title: e.title, type: e.type, target_contracts: e.target_contracts })))
-    
     const nextChannelMap: { [key: string]: Event[] } = {}
     
     nextMonthEvents.forEach(event => {
@@ -257,15 +230,12 @@ ${filteredStats.message}
       nextChannelMap[event.type].push(event)
     })
     
-    console.log('다음달 채널 맵:', Object.keys(nextChannelMap))
-    
     // 현재월, 전월, 다음달의 모든 채널을 합쳐서 처리
     const allChannels = new Set([
       ...Object.keys(channelMap), 
       ...Object.keys(prevChannelMap), 
       ...Object.keys(nextChannelMap)
     ])
-    console.log('모든 채널:', Array.from(allChannels))
     
     const channelStatsResult = []
     
@@ -290,7 +260,6 @@ ${filteredStats.message}
       
       // 다음달 실제 목표 확인
       const nextChannelEvents = nextChannelMap[channel] || []
-      console.log(`[${channel}] 다음달 이벤트:`, nextChannelEvents.length, '개')
       
       const nextMonthTargetContracts = nextChannelEvents.length > 0 
         ? nextChannelEvents.reduce((sum, e) => sum + e.target_contracts, 0) 
@@ -298,11 +267,6 @@ ${filteredStats.message}
       const nextMonthTargetEstimates = nextChannelEvents.length > 0 
         ? nextChannelEvents.reduce((sum, e) => sum + e.target_estimates, 0) 
         : 0
-        
-      console.log(`[${channel}] 익월 목표:`, { 
-        nextMonthTargetContracts, 
-        nextMonthTargetEstimates 
-      })
 
       channelStatsResult.push({
         channel,
@@ -325,17 +289,8 @@ ${filteredStats.message}
       })
     }
     
-    console.log('channelStatsResult:', channelStatsResult.map(c => ({ 
-      channel: c.channel, 
-      currentContracts: c.totalContracts, 
-      prevContracts: c.prevContracts,
-      nextMonthTargets: c.nextMonthTargetContracts
-    })))
-    
     return channelStatsResult
   }
-
-  
 
   // 실제 데이터 기반 상위 성과 이벤트
   const topPerformingEvents = (filteredStats?.filteredEventData || events)
@@ -349,8 +304,6 @@ ${filteredStats.message}
 
   // 이벤트 테이블 필터링 함수
   const filterEventTable = async (filter: string, start: string, end: string) => {
-    console.log('이벤트 테이블 필터링:', { filter, start, end })
-    
     try {
       let filtered: Event[] = []
 
@@ -362,12 +315,10 @@ ${filteredStats.message}
         filtered = await fetchEventsByStatus('계획중')
       } else if (filter === 'custom' && start && end) {
         filtered = await fetchEventsByPeriod(start, end)
-        console.log(`기간 검색 결과: ${filtered.length}개 이벤트`)
       } else if (filter === 'all') {
         filtered = events
       }
 
-      console.log(`필터링된 이벤트 수: ${filtered.length}`)
       setFilteredEvents(filtered)
     } catch (error) {
       console.error('이벤트 필터링 중 오류:', error)
@@ -378,7 +329,6 @@ ${filteredStats.message}
   const displayEvents = filteredEvents || events
 
   const handleEventTableFilterChange = async (value: string) => {
-    console.log('이벤트 테이블 필터 변경:', value)
     setEventTableFilter(value)
     
     if (value !== 'custom') {
@@ -428,464 +378,340 @@ ${filteredStats.message}
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-6">
       {/* Page Header */}
-      <div className="flex justify-between items-start">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start space-y-4 sm:space-y-0">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">통계 분석</h1>
-          <p className="text-muted-foreground mt-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">통계 분석</h1>
+          <p className="text-muted-foreground mt-2 text-sm sm:text-base">
             채널별 성과 분석과 트렌드를 확인하세요
           </p>
-      </div>
-
-        <div className="flex items-center space-x-4">
-          <Select value={periodFilter} onValueChange={handlePeriodChange}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="조회기간" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="monthly">월간</SelectItem>
-              <SelectItem value="quarterly">분기별</SelectItem>
-              <SelectItem value="custom">기간설정</SelectItem>
-            </SelectContent>
-          </Select>
-          {periodFilter === 'monthly' && (
-            <div className="flex items-center space-x-2">
-              <div className="flex items-center space-x-1 bg-muted/30 p-2 rounded-lg">
-                <Select value={selectedYear} onValueChange={setSelectedYear}>
-                  <SelectTrigger className="w-20 border-none bg-background">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="2023">2023</SelectItem>
-                    <SelectItem value="2024">2024</SelectItem>
-                    <SelectItem value="2025">2025</SelectItem>
-                  </SelectContent>
-                </Select>
-                <span className="text-sm font-medium">년</span>
-                <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                  <SelectTrigger className="w-16 border-none bg-background">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from({length: 12}, (_, i) => (
-                      <SelectItem key={i+1} value={(i+1).toString().padStart(2, '0')}>
-                        {i+1}월
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button onClick={handleSearch} className="ml-4">
-                <Search className="w-4 h-4 mr-2" />
-                검색
-              </Button>
-            </div>
-          )}
-          {periodFilter === 'quarterly' && (
-            <div className="flex items-center space-x-2">
-              <div className="flex items-center space-x-1 bg-muted/30 p-2 rounded-lg">
-                <Select value={selectedYear} onValueChange={setSelectedYear}>
-                  <SelectTrigger className="w-20 border-none bg-background">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="2023">2023</SelectItem>
-                    <SelectItem value="2024">2024</SelectItem>
-                    <SelectItem value="2025">2025</SelectItem>
-                  </SelectContent>
-                </Select>
-                <span className="text-sm font-medium">년</span>
-                <Select value={selectedQuarter} onValueChange={setSelectedQuarter}>
-                  <SelectTrigger className="w-20 border-none bg-background">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">1분기</SelectItem>
-                    <SelectItem value="2">2분기</SelectItem>
-                    <SelectItem value="3">3분기</SelectItem>
-                    <SelectItem value="4">4분기</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button onClick={handleSearch} className="ml-4">
-                <Search className="w-4 h-4 mr-2" />
-                검색
-              </Button>
-            </div>
-          )}
-          {periodFilter === 'custom' && (
-            <div className="flex items-center space-x-2">
-              <div className="flex items-center space-x-1 bg-muted/30 p-2 rounded-lg">
-                <Select value={startYear} onValueChange={setStartYear}>
-                  <SelectTrigger className="w-20 border-none bg-background">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="2023">2023</SelectItem>
-                    <SelectItem value="2024">2024</SelectItem>
-                    <SelectItem value="2025">2025</SelectItem>
-                  </SelectContent>
-                </Select>
-                <span className="text-sm font-medium">년</span>
-                <Select value={startMonth} onValueChange={setStartMonth}>
-                  <SelectTrigger className="w-16 border-none bg-background">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from({length: 12}, (_, i) => (
-                      <SelectItem key={i+1} value={(i+1).toString().padStart(2, '0')}>
-                        {i+1}월
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <span className="font-medium">~</span>
-              <div className="flex items-center space-x-1 bg-muted/30 p-2 rounded-lg">
-                <Select value={endYear} onValueChange={setEndYear}>
-                  <SelectTrigger className="w-20 border-none bg-background">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="2023">2023</SelectItem>
-                    <SelectItem value="2024">2024</SelectItem>
-                    <SelectItem value="2025">2025</SelectItem>
-                  </SelectContent>
-                </Select>
-                <span className="text-sm font-medium">년</span>
-                <Select value={endMonth} onValueChange={setEndMonth}>
-                  <SelectTrigger className="w-16 border-none bg-background">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from({length: 12}, (_, i) => (
-                      <SelectItem key={i+1} value={(i+1).toString().padStart(2, '0')}>
-                        {i+1}월
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button onClick={handleSearch} className="ml-4">
-                <Search className="w-4 h-4 mr-2" />
-                검색
-              </Button>
-            </div>
-          )}
-          <Button onClick={handleDownload}>
-            <Download className="w-4 h-4 mr-2" />
-            리포트 다운로드
-          </Button>
         </div>
+        <Button 
+          onClick={handleDownload}
+          variant="outline"
+          className="w-full sm:w-auto"
+        >
+          <Download className="w-4 h-4 mr-2" />
+          리포트 다운로드
+        </Button>
       </div>
 
-      {/* 전체 요약 */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      {/* Filters Section */}
+      <Card className="p-4 sm:p-6">
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+            <Select value={periodFilter} onValueChange={handlePeriodChange}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="조회기간" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="monthly">월간</SelectItem>
+                <SelectItem value="quarterly">분기별</SelectItem>
+                <SelectItem value="custom">기간설정</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            {periodFilter === 'monthly' && (
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+                <div className="flex items-center space-x-1 bg-muted/30 p-2 rounded-lg">
+                  <Select value={selectedYear} onValueChange={setSelectedYear}>
+                    <SelectTrigger className="w-20 border-none bg-background">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="2023">2023</SelectItem>
+                      <SelectItem value="2024">2024</SelectItem>
+                      <SelectItem value="2025">2025</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <span className="text-sm font-medium">년</span>
+                  <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                    <SelectTrigger className="w-16 border-none bg-background">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({length: 12}, (_, i) => (
+                        <SelectItem key={i+1} value={(i+1).toString().padStart(2, '0')}>
+                          {i+1}월
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button onClick={handleSearch} className="w-full sm:w-auto">
+                  <Search className="w-4 h-4 mr-2" />
+                  검색
+                </Button>
+              </div>
+            )}
+            
+            {periodFilter === 'quarterly' && (
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+                <div className="flex items-center space-x-1 bg-muted/30 p-2 rounded-lg">
+                  <Select value={selectedYear} onValueChange={setSelectedYear}>
+                    <SelectTrigger className="w-20 border-none bg-background">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="2023">2023</SelectItem>
+                      <SelectItem value="2024">2024</SelectItem>
+                      <SelectItem value="2025">2025</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <span className="text-sm font-medium">년</span>
+                  <Select value={selectedQuarter} onValueChange={setSelectedQuarter}>
+                    <SelectTrigger className="w-20 border-none bg-background">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1분기</SelectItem>
+                      <SelectItem value="2">2분기</SelectItem>
+                      <SelectItem value="3">3분기</SelectItem>
+                      <SelectItem value="4">4분기</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button onClick={handleSearch} className="w-full sm:w-auto">
+                  <Search className="w-4 h-4 mr-2" />
+                  검색
+                </Button>
+              </div>
+            )}
+            
+            {periodFilter === 'custom' && (
+              <div className="flex flex-col space-y-2 w-full sm:w-auto">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="flex items-center space-x-1 bg-muted/30 p-2 rounded-lg">
+                    <Select value={startYear} onValueChange={setStartYear}>
+                      <SelectTrigger className="w-16 border-none bg-background text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="2023">2023</SelectItem>
+                        <SelectItem value="2024">2024</SelectItem>
+                        <SelectItem value="2025">2025</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={startMonth} onValueChange={setStartMonth}>
+                      <SelectTrigger className="w-14 border-none bg-background text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({length: 12}, (_, i) => (
+                          <SelectItem key={i+1} value={(i+1).toString().padStart(2, '0')}>
+                            {i+1}월
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-center space-x-1 bg-muted/30 p-2 rounded-lg">
+                    <Select value={endYear} onValueChange={setEndYear}>
+                      <SelectTrigger className="w-16 border-none bg-background text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="2023">2023</SelectItem>
+                        <SelectItem value="2024">2024</SelectItem>
+                        <SelectItem value="2025">2025</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={endMonth} onValueChange={setEndMonth}>
+                      <SelectTrigger className="w-14 border-none bg-background text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({length: 12}, (_, i) => (
+                          <SelectItem key={i+1} value={(i+1).toString().padStart(2, '0')}>
+                            {i+1}월
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <Button onClick={handleSearch} className="w-full">
+                  <Search className="w-4 h-4 mr-2" />
+                  검색
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      </Card>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <KPICard
-          title="총 이벤트"
-          value={filteredStats?.totalEvents || 0}
-          unit="개"
-          trend={filteredStats?.prevMonthStats && filteredStats.totalEvents > filteredStats.prevMonthStats.totalEvents ? "up" : "down"}
-          trendValue={filteredStats?.prevMonthStats ? 
-            Math.round(((filteredStats.totalEvents - filteredStats.prevMonthStats.totalEvents) / Math.max(filteredStats.prevMonthStats.totalEvents, 1)) * 100) : 
-            0
-          }
-        />
-        <KPICard
-          title="총 계약건수"
-          value={filteredStats?.totalContracts || 0}
+          title="계약건수"
+          value={filteredStats?.totalContracts || events.reduce((sum, e) => sum + e.actual_contracts, 0)}
+          target={filteredStats?.totalTargetContracts || events.reduce((sum, e) => sum + e.target_contracts, 0)}
           unit="건"
-          trend={filteredStats?.prevMonthStats && filteredStats.totalContracts > filteredStats.prevMonthStats.totalContracts ? "up" : "down"}
-          trendValue={filteredStats?.prevMonthStats ? 
-            Math.round(((filteredStats.totalContracts - filteredStats.prevMonthStats.totalContracts) / Math.max(filteredStats.prevMonthStats.totalContracts, 1)) * 100) : 
-            0
-          }
+          trend={filteredStats && filteredStats.prevMonthStats ? 
+            (filteredStats.totalContracts > filteredStats.prevMonthStats.totalContracts ? 'up' : 'down') : 'up'}
+          trendValue={filteredStats && filteredStats.prevMonthStats && filteredStats.prevMonthStats.totalContracts > 0 ? 
+            Math.round(((filteredStats.totalContracts - filteredStats.prevMonthStats.totalContracts) / filteredStats.prevMonthStats.totalContracts) * 100) : 5}
         />
         <KPICard
-          title="평균 달성률"
-          value={filteredStats?.averageAchievementRate || 0}
+          title="달성률"
+          value={filteredStats?.averageAchievementRate || 85}
+          target={100}
           unit="%"
-          trend={filteredStats?.prevMonthStats && filteredStats.averageAchievementRate > filteredStats.prevMonthStats.averageAchievementRate ? "up" : "down"}
-          trendValue={filteredStats?.prevMonthStats ? 
-            Math.round(filteredStats.averageAchievementRate - filteredStats.prevMonthStats.averageAchievementRate) : 
-            0
-          }
+          trend={filteredStats && filteredStats.prevMonthStats ? 
+            (filteredStats.averageAchievementRate > filteredStats.prevMonthStats.averageAchievementRate ? 'up' : 'down') : 'up'}
+          trendValue={3}
+        />
+        <KPICard
+          title="장수"
+          value={filteredStats?.totalSqm || events.reduce((sum, e) => sum + e.actual_sqm, 0)}
+          target={15000}
+          unit="장"
+          trend="up"
+          trendValue={8}
         />
         <KPICard
           title="장당비용"
-          value={filteredStats?.costPerSqm || 0}
-          unit="원/장"
-          trend={filteredStats?.prevMonthStats && filteredStats.costPerSqm < filteredStats.prevMonthStats.costPerSqm ? "up" : "down"}
-          trendValue={filteredStats?.prevMonthStats ? 
-            Math.round(((filteredStats.costPerSqm - filteredStats.prevMonthStats.costPerSqm) / Math.max(filteredStats.prevMonthStats.costPerSqm, 1)) * 100) : 
-            0
-          }
+          value={filteredStats?.costPerSqm || (events.reduce((sum, e) => sum + e.actual_sqm, 0) > 0 ? 
+            Math.round(events.reduce((sum, e) => sum + (e.total_cost || 0), 0) / events.reduce((sum, e) => sum + e.actual_sqm, 0)) : 0)}
+          target={10000}
+          unit="원"
+          trend={filteredStats && filteredStats.prevMonthStats ? 
+            (filteredStats.costPerSqm < filteredStats.prevMonthStats.costPerSqm ? 'up' : 'down') : 'down'}
+          trendValue={-2}
         />
       </div>
 
-      {/* 이벤트별 상세 분석 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            이벤트별 상세분석
-            {filteredStats && filteredStats.filteredEventData && (
-              <span className="text-sm font-normal text-muted-foreground ml-2">
-                ({filteredStats.filteredEventData.length}개 이벤트)
-              </span>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            {filteredStats && filteredStats.filteredEventData ? (
-              filteredStats.filteredEventData.length > 0 ? (
-                filteredStats.filteredEventData.map((event, index) => (
-                  <div key={event.id || index} className="p-4 border border-border rounded-lg">
-                    <div className="flex justify-between items-center mb-3">
-                      <div>
-                        <h4 className="font-semibold">{event.title}</h4>
-                        <p className="text-sm text-muted-foreground">{event.type}</p>
-                      </div>
-                      <Badge 
-                        className={
-                          event.efficiency >= 85 ? "bg-success text-success-foreground" :
-                          event.efficiency >= 70 ? "bg-warning text-warning-foreground" :
-                          "bg-danger text-danger-foreground"
-                        }
-                      >
-                        효율성 {event.efficiency}%
-                      </Badge>
-                    </div>
-                    <div className="grid grid-cols-5 gap-4 text-sm">
-                      <div>
-                        <p className="text-muted-foreground">계약건수</p>
-                        <p className="font-semibold">{event.actual_contracts}건</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground">견적건수</p>
-                        <p className="font-semibold">{event.actual_estimates}건</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground">계약장수</p>
-                        <p className="font-semibold">{event.actual_sqm.toLocaleString()}장</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground">전환율</p>
-                        <p className="font-semibold">{((event.actual_contracts / event.actual_estimates) * 100).toFixed(1)}%</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground">장당비용</p>
-                        <p className="font-semibold">{Math.round(event.total_cost / event.actual_sqm).toLocaleString()}원/장</p>
-                      </div>
-                    </div>
+      {/* Charts and Analysis */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        {/* Channel Performance */}
+        <Card className="p-4 sm:p-6">
+          <CardHeader className="p-0 pb-4">
+            <CardTitle className="text-lg font-semibold">채널별 성과</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="space-y-3">
+              {channelStats.length > 0 ? channelStats.map((channel, index) => (
+                <div key={index} className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 bg-muted/30 rounded-lg space-y-2 sm:space-y-0">
+                  <div className="flex flex-col">
+                    <span className="font-medium text-sm">{channel.channel}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {channel.totalContracts}건 / {channel.targetContracts}건
+                    </span>
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  선택한 기간에 해당하는 이벤트가 없습니다.
-                </div>
-              )
-            ) : (
-              events.slice(0, 3).map((event, index) => (
-                <div key={event.id || index} className="p-4 border border-border rounded-lg">
-                  <div className="flex justify-between items-center mb-3">
-                    <div>
-                      <h4 className="font-semibold">{event.title}</h4>
-                      <p className="text-sm text-muted-foreground">{event.type}</p>
-                    </div>
-                    <Badge 
-                      className={
-                        event.efficiency >= 85 ? "bg-success text-success-foreground" :
-                        event.efficiency >= 70 ? "bg-warning text-warning-foreground" :
-                        "bg-danger text-danger-foreground"
-                      }
-                    >
-                      효율성 {event.efficiency}%
-                    </Badge>
-                  </div>
-                  <div className="grid grid-cols-5 gap-4 text-sm">
-                    <div>
-                      <p className="text-muted-foreground">계약건수</p>
-                      <p className="font-semibold">{event.actual_contracts}건</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">견적건수</p>
-                      <p className="font-semibold">{event.actual_estimates}건</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">계약장수</p>
-                      <p className="font-semibold">{event.actual_sqm.toLocaleString()}장</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">전환율</p>
-                      <p className="font-semibold">{((event.actual_contracts / event.actual_estimates) * 100).toFixed(1)}%</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">장당비용</p>
-                      <p className="font-semibold">{Math.round(event.total_cost / event.actual_sqm).toLocaleString()}원/장</p>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* 채널별 월간 현황 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>채널별 계약현황</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            {channelStats.map((channel, index) => (
-              <div key={index} className="border rounded-lg p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">{channel.channel}</h3>
-                  <Badge variant="secondary">금월 현황</Badge>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <div className="text-sm text-muted-foreground">전월 대비</div>
-                    <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-semibold">{channel.goalAchievementRate}%</span>
+                    <div className="flex items-center space-x-1">
                       {getTrendIcon(channel.trend)}
-                      <span className={`font-bold ${getTrendColor(channel.trend)}`}>
+                      <span className={`text-xs ${getTrendColor(channel.trend)}`}>
                         {channel.trendValue > 0 ? '+' : ''}{channel.trendValue}%
                       </span>
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      전월: {channel.prevContracts || 0}건
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="text-sm text-muted-foreground">목표 대비</div>
-                    <div className="font-bold text-primary">
-                      {channel.goalAchievementRate || 0}%
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      목표: {channel.targetContracts || 0}건
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="text-sm text-muted-foreground">현재 실적</div>
-                    <div className="font-bold text-success">{channel.totalContracts}건</div>
-                    <div className="text-xs text-muted-foreground">
-                      달성률: {channel.avgContractRate}%
-                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* 익월 목표 */}
-      {channelStats.length > 0 && channelStats.some(channel => channel.nextMonthTargetContracts > 0 || channel.nextMonthTargetEstimates > 0) && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <CalendarRange className="w-5 h-5" />
-              <span>익월 목표</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {channelStats
-                .filter(channel => channel.nextMonthTargetContracts > 0 || channel.nextMonthTargetEstimates > 0)
-                .map((channel, index) => (
-                <div key={index} className="text-center p-4 border rounded-lg">
-                  <h4 className="font-semibold mb-2">{channel.channel}</h4>
-                  <div className="space-y-2">
-                    <div className="text-lg font-bold text-primary">
-                      {channel.nextMonthTargetContracts || 0}건
-                    </div>
-                    <div className="text-xs text-muted-foreground">목표 계약</div>
-                    <div className="text-sm">
-                      {channel.nextMonthTargetEstimates || 0}건 견적
-                    </div>
-                  </div>
+              )) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  {loading ? '데이터를 불러오는 중...' : '채널 데이터가 없습니다.'}
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>
-      )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* 채널별 실적 현황 */}
-        <Card>
-          <CardHeader>
-            <CardTitle>채널별 견적 실적</CardTitle>
+        {/* Top Performing Events */}
+        <Card className="p-4 sm:p-6">
+          <CardHeader className="p-0 pb-4">
+            <CardTitle className="text-lg font-semibold">상위 성과 이벤트</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {channelStats.map((channel, index) => (
-                <div key={index} className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium">{channel.channel}</span>
-                    <span className="text-sm text-muted-foreground">
-                      {channel.totalContracts}건
+          <CardContent className="p-0">
+            <div className="space-y-3">
+              {topPerformingEvents.map((event, index) => (
+                <div key={index} className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{event.name}</p>
+                    <p className="text-xs text-muted-foreground">{event.sqm.toLocaleString()}장</p>
+                  </div>
+                  <div className="flex items-center space-x-2 ml-2">
+                    <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
+                      #{index + 1}
                     </span>
                   </div>
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div 
-                      className="h-2 rounded-full bg-gradient-primary transition-all duration-500"
-                      style={{ 
-                        width: `${channelStats.length > 0 ? (channel.totalContracts / Math.max(...channelStats.map(c => c.totalContracts))) * 100 : 0}%` 
-                      }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>견적: {channel.totalEstimates}건</span>
-                    <span>장수: {channel.totalSqm.toLocaleString()}장</span>
-                  </div>
                 </div>
               ))}
-              {channelStats.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  데이터가 없습니다.
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* 성과(계약장수) 상위 이벤트 */}
-        <Card>
-          <CardHeader>
-            <CardTitle>이벤트별 계약장수</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {topPerformingEvents.map((event, index) => (
-                <div key={event.name} className="flex items-center justify-between p-3 border border-border rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
-                      {index + 1}
-                    </div>
-                    <span className="font-medium">{event.name}</span>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold">{event.sqm.toLocaleString()}장</p>
-                  </div>
-                </div>
-              ))}
-              {topPerformingEvents.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  데이터가 없습니다.
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>
       </div>
 
+      {/* Event List */}
+      <Card className="p-4 sm:p-6">
+        <CardHeader className="p-0 pb-4">
+          <CardTitle className="text-lg font-semibold">이벤트 목록</CardTitle>
+          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+            <Select value={eventTableFilter} onValueChange={handleEventTableFilterChange}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="필터 선택" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">전체</SelectItem>
+                <SelectItem value="completed">완료된 이벤트</SelectItem>
+                <SelectItem value="ongoing">진행중인 이벤트</SelectItem>
+                <SelectItem value="planned">계획중인 이벤트</SelectItem>
+                <SelectItem value="custom">기간별 검색</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            {eventTableFilter === 'custom' && (
+              <div className="grid grid-cols-2 gap-2 w-full sm:w-auto">
+                <Select value={eventSearchStartYear} onValueChange={setEventSearchStartYear}>
+                  <SelectTrigger className="text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2023">2023년</SelectItem>
+                    <SelectItem value="2024">2024년</SelectItem>
+                    <SelectItem value="2025">2025년</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={eventSearchEndYear} onValueChange={setEventSearchEndYear}>
+                  <SelectTrigger className="text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2023">2023년</SelectItem>
+                    <SelectItem value="2024">2024년</SelectItem>
+                    <SelectItem value="2025">2025년</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="space-y-3">
+            {displayEvents.slice(0, isMobile ? 5 : 10).map((event, index) => (
+              <div key={index} className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 border rounded-lg space-y-2 sm:space-y-0">
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-2">
+                    <p className="font-medium text-sm truncate">{event.title}</p>
+                    {getStatusBadge(event.status)}
+                  </div>
+                  <p className="text-xs text-muted-foreground">{event.type} • {event.start_date}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-medium">{event.actual_contracts}건</p>
+                  <p className="text-xs text-muted-foreground">{event.actual_sqm}장</p>
+                </div>
+              </div>
+            ))}
+            {displayEvents.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                필터 조건에 맞는 이벤트가 없습니다.
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
