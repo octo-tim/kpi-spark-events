@@ -49,8 +49,10 @@ const Auth = () => {
           setError('이메일 또는 비밀번호가 올바르지 않습니다.')
         } else if (error.message.includes('Email not confirmed')) {
           setError('이메일 인증이 필요합니다. 이메일을 확인해주세요.')
+        } else if (error.message.includes('네트워크 연결에 문제가') || error.name === 'NetworkError') {
+          setError('서버 연결에 문제가 있습니다. 잠시 후 다시 시도해주세요.')
         } else {
-          setError(error.message)
+          setError(`로그인 오류: ${error.message}`)
         }
       } else {
         toast({
@@ -79,8 +81,10 @@ const Auth = () => {
           setError('이미 등록된 이메일입니다.')
         } else if (error.message.includes('Password should be at least 6 characters')) {
           setError('비밀번호는 최소 6자리 이상이어야 합니다.')
+        } else if (error.message.includes('네트워크 연결에 문제가') || error.name === 'NetworkError') {
+          setError('서버 연결에 문제가 있습니다. 잠시 후 다시 시도해주세요.')
         } else {
-          setError(error.message)
+          setError(`회원가입 오류: ${error.message}`)
         }
       } else {
         toast({
